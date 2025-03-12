@@ -23,6 +23,7 @@ process DETECT_UMI_CONSENSUS_FASTQ {
         --output_format ${params.output_format} \
         --output_filename ${fastq.baseName}_umis \
         $write_report \
+        --cons \
         -o . ${fastq}
     """
 }

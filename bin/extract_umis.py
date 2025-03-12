@@ -71,6 +71,12 @@ def parse_args(argv):
         help="write TSV output file"
     )
     parser.add_argument(
+        "--cons",
+        dest=CONS,
+        action="store_true",
+        help="mark consensus round of extraction"
+    )
+    parser.add_argument(
         "-o",
         "--output",
         dest="OUT",
@@ -132,7 +138,31 @@ def clip_entry(entry, umi_start_fwd, umi_start_rev, adapter_length, format):
     
     return entry
 
-def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction):
+def normalise(result, pattern, query_seq, wildcard):
+    # Extract and normalise UMI
+    seq = ""
+    align = edlib.getNiceAlignment(result, pattern, query_seq)
+    for q, t in zip(align["query_aligned"], align["target_aligned"]):
+        if q not in wildcard:
+            continue
+        if t == "-":
+            seq += "N"
+        else:
+            seq += t
+    return seq
+
+def normalise_synthetic(result, pattern, query_seq):
+    # Extract and normalise UMI
+    seq = ""
+    align = edlib.getNiceAlignment(result, pattern, query_seq)
+    for q, t in zip(align["query_aligned"], align["target_aligned"]):
+        if t == "-":
+            seq += "N"
+        else:
+            seq += t
+    return seq
+
+def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction, strand, out_stats_synthetic, out_stats_umi):
     umi_qual = None
     equalities = [("M", "A"), ("M", "C"), ("R", "A"), ("R", "G"), ("W", "A"), ("W", "T"), ("S", "C"), ("S", "G"), ("Y", "C"), ("Y", "T"), ("K", "G"), ("K", "T"), ("V", "A"), ("V", "C"),
                   ("V", "G"), ("H", "A"), ("H", "C"), ("H", "T"), ("D", "A"), ("D", "G"), ("D", "T"), ("B", "C"), ("B", "G"), ("B", "T"), ("N", "A"), ("N", "C"), ("N", "G"), ("N", "T"),
@@ -140,6 +170,94 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
                   ("v", "g"), ("h", "a"), ("h", "c"), ("h", "t"), ("d", "a"), ("d", "g"), ("d", "t"), ("b", "c"), ("b", "g"), ("b", "t"), ("n", "a"), ("n", "c"), ("n", "g"), ("n", "t"), 
                   ("a", "A"), ("c", "C"), ("t", "T"), ("g", "G")]
 
+    pattern_wc = pattern
+    for c in 'actgACTG':
+        pattern_wc = pattern_wc.replace(c, "")
+    wildcard = set(''.join(pattern_wc))
+
+    # EXTRACT SYNTHETIC
+    
+    if strand == "+":
+        if direction == 'fwd':
+            pattern_synthetic = 'CAAGCAGAAGACGGCATACGAGAT'
+        elif direction == 'rev':
+            pattern_synthetic = rev_comp('AATGATACGGCGACCACCGAGATC')
+    elif strand == "-":
+        if direction == 'fwd':
+            pattern_synthetic = 'AATGATACGGCGACCACCGAGATC'
+        elif direction == 'rev':
+            pattern_synthetic = rev_comp('CAAGCAGAAGACGGCATACGAGAT')
+    else:
+        write_stats(
+            None,
+            None,
+            None,
+            None,
+            direction,
+            strand,
+            -1,
+            None,
+            None,
+            None,
+            out_stats_synthetic,
+        )
+        return None, None, None, None
+    
+    result_synthetic = edlib.align(
+        pattern_synthetic,
+        query_seq,
+        task="path",
+        mode="HW",
+        k=7,
+        additionalEqualities=equalities,
+    )
+    if result_synthetic["editDistance"] == -1:
+        write_stats(
+            pattern_synthetic,
+            None,
+            None,
+            None,
+            direction,
+            strand,
+            -1,
+            None,
+            None,
+            None,
+            out_stats_synthetic,
+        )
+        return None, None, None, None
+
+    edit_dist_synthetic = result_synthetic["editDistance"]
+    locs_synthetic = result_synthetic["locations"][0]
+    synthetic_start_pos = locs_synthetic[0]
+    synthetic_end_pos = locs_synthetic[1] + 1
+
+    synthetic_seq = normalise_synthetic(result_synthetic, pattern_synthetic, query_seq)
+    synthetic_length = len(synthetic_seq)
+
+    write_stats(
+        pattern_synthetic,
+        synthetic_seq,
+        None,
+        None,
+        direction,
+        strand,
+        edit_dist_synthetic,
+        synthetic_length,
+        synthetic_start_pos,
+        synthetic_end_pos,
+        out_stats_synthetic,
+    )
+
+    if direction == "fwd":
+        query_seq = query_seq[synthetic_end_pos:synthetic_end_pos + 20]
+        query_qual = query_qual[synthetic_end_pos:synthetic_end_pos + 20]
+    elif direction == "rev":
+        query_seq = query_seq[synthetic_start_pos - 20:synthetic_start_pos]
+        query_qual = query_qual[synthetic_start_pos - 20:synthetic_start_pos]
+
+    # EXTRACT PATTERN UMI
+    
     result = edlib.align(
         pattern,
         query_seq,
@@ -149,21 +267,77 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
         additionalEqualities=equalities,
     )
     if result["editDistance"] == -1:
+        write_stats(
+            pattern_synthetic,
+            synthetic_seq,
+            pattern,
+            None,
+            direction,
+            strand,
+            -1,
+            None,
+            None,
+            None,
+            out_stats_umi,
+        )
         return None, None, None, None
 
     edit_dist = result["editDistance"]
     locs = result["locations"][0]
     umi_start_pos = locs[0]
     umi_end_pos = locs[1] + 1
-    umi = query_seq[umi_start_pos:umi_end_pos]
+
+    if None in locs:
+        write_stats(
+            pattern_synthetic,
+            synthetic_seq,
+            pattern,
+            None,
+            direction,
+            strand,
+            edit_dist,
+            None,
+            umi_start_pos,
+            umi_end_pos,
+            out_stats_umi,
+        )
+        return None, None, None, None
+
+    umi = normalise(result, pattern, query_seq, wildcard)
+    umi_length = len(umi)
+
+    if umi_length != 18:
+        return None, None, None, None
+
+    write_stats(
+        pattern_synthetic,
+        synthetic_seq,
+        pattern,
+        umi,
+        direction,
+        strand,
+        edit_dist,
+        umi_length,
+        umi_start_pos,
+        umi_end_pos,
+        out_stats_umi,
+    )
     
     if direction == "fwd":
-        umi_start = umi_start_pos
+        umi_start = synthetic_start_pos
     else:
-        umi_start = umi_end_pos
+        umi_start = synthetic_end_pos
 
     if format == "fastq":
-        umi_qual = query_qual[locs[0]:locs[1]+1]
+        umi_qual = ''
+        total_N = 0
+        umi_qual_tmp = query_qual[umi_start_pos:umi_end_pos]
+        for i, c in enumerate(umi):
+            if c == 'N':
+                total_N += 1
+                umi_qual += '!'
+            else:
+                umi_qual += umi_qual_tmp[i - total_N]
 
     return edit_dist, umi, umi_qual, umi_start
 
@@ -189,13 +363,33 @@ def get_read_name(entry):
     return entry.name.split(";")[0]
 
 
-def get_read_strand(entry):
+def hamming_distance(str1, str2):
+    if len(str1) != len(str2):
+        raise ValueError("Strings must be of the same length")
+
+    distance = sum(ch1 != ch2 for ch1, ch2 in zip(str1, str2))
+    return distance
+
+
+def get_read_strand(entry,cons):
     strand = entry.name.split("strand=")
     if len(strand) > 1:
         return strand[1]
     # second extraction only includes positive strand!
+    elif cons:
+        seq = entry.sequence[0:24]
+
+        plus_diff = hamming_distance(seq, 'CAAGCAGAAGACGGCATACGAGAT')
+        minus_diff = hamming_distance(seq, 'AATGATACGGCGACCACCGAGATC')
+
+        if plus_diff < minus_diff:
+            return '+'
+        elif minus_diff < plus_diff:
+            return '-'
+        else:
+            return 'E' # error, diff the same
     else:
-        return "+"
+        return '+'
 
 
 def combine_umis_fasta(seq_5p, seq_3p, strand):
@@ -210,6 +404,36 @@ def combine_umis_fastq(seq_5p, seq_3p, qual_5p, qual_3p, strand):
         return (seq_5p + seq_3p), (qual_5p + qual_3p)
     else:
         return (rev_comp(seq_3p) + rev_comp(seq_5p)), (rev_comp_qual(qual_3p) + rev_comp_qual(qual_5p))
+
+
+def write_stats(
+    pattern_synthetic,
+    synthetic_seq,
+    pattern_umi,
+    umi_seq,
+    direction,
+    strand,
+    edit_dist_synthetic,
+    synthetic_length,
+    synthetic_start_pos,
+    synthetic_end_pos,
+    out,
+):
+    
+    print(
+        pattern_synthetic,
+        synthetic_seq,
+        pattern_umi,
+        umi_seq,
+        direction,
+        strand,
+        edit_dist_synthetic,
+        synthetic_length,
+        synthetic_start_pos,
+        synthetic_end_pos,
+        sep='\t',
+        file=out,
+    )
 
 
 def write_fasta(
@@ -319,6 +543,7 @@ def write_tsv(
             file=tsv_f,
             sep="\t"
         )
+        print(strand_stats,file=tsv_f)
 
 
 def extract_umis(
@@ -328,6 +553,7 @@ def extract_umis(
     max_pattern_dist = args.MAX_ERROR
     output_folder = args.OUT
     tsv = args.TSV
+    cons = args.CONS
     input_file = args.INPUT_FA
     umi_fwd = args.FWD_UMI
     umi_rev = args.REV_UMI
@@ -336,13 +562,45 @@ def extract_umis(
 
     output_file = os.path.join(
         output_folder, "{}.{}".format(output_file_name, format))
+    output_stats_synthetic = os.path.join(
+        output_folder, "extract_stats_synthetic.tsv")
+    output_stats_umi = os.path.join(
+        output_folder, "extract_stats_umi.tsv")
 
     n_total = 0
     n_both_umi = 0
-    strand_stats = {"+": 0, "-": 0}
-    with pysam.FastxFile(input_file) as fh, open(output_file, "w") as out:
+    strand_stats = {"+": 0, "-": 0, 'E': 0}
+    with pysam.FastxFile(input_file) as fh, open(output_file, "w") as out, open(output_stats_synthetic, "w") as out_stats_synthetic, open(output_stats_umi, "w") as out_stats_umi:
+        print(
+            'syn_pattern',
+            'syn_seq',
+            'umi_pattern',
+            'umi_seq',
+            'orientation'
+            'strand',
+            'edit_dist',
+            'length',
+            'start_pos',
+            'end_pos',
+            file=out_stats_synthetic,
+            sep='\t'
+        )
+        print(
+            'syn_pattern',
+            'syn_seq',
+            'umi_pattern',
+            'umi_seq',
+            'orientation',
+            'strand',
+            'edit_dist',
+            'length',
+            'start_pos',
+            'end_pos',
+            file=out_stats_umi,
+            sep='\t'
+        )
         for entry in fh:
-            strand = get_read_strand(entry)
+            strand = get_read_strand(entry,cons)
             entry.name = get_read_name(entry)
             n_total += 1
 
@@ -357,11 +615,11 @@ def extract_umis(
 
             # Extract fwd UMI
             result_5p_fwd_umi_dist, result_5p_fwd_umi_seq, result_5p_fwd_umi_qual, umi_start_fwd = extract_umi(
-                read_5p_seq, read_5p_qual, umi_fwd, max_pattern_dist, format, "fwd"
+                read_5p_seq, read_5p_qual, umi_fwd, max_pattern_dist, format, "fwd", strand, out_stats_synthetic, out_stats_umi
             )
             # Extract rev UMI
             result_3p_rev_umi_dist, result_3p_rev_umi_seq, result_3p_rev_umi_qual, umi_start_rev = extract_umi(
-                read_3p_seq, read_3p_qual, umi_rev, max_pattern_dist, format, "rev"
+                read_3p_seq, read_3p_qual, umi_rev, max_pattern_dist, format, "rev", strand, out_stats_synthetic, out_stats_umi
             )
 
             if not result_5p_fwd_umi_seq or not result_3p_rev_umi_seq:

@@ -103,7 +103,7 @@ def parse_args(argv):
     )
 
     parser.add_argument(
-        "--clusters", dest="CLUSTERS", nargs="+", required=True, type=str, help="cluster fastx files"
+        "--cluster_list", dest="CLUSTERS", required=True, help="cluster fastxs list file"
     )
 
     parser.add_argument(
@@ -137,6 +137,20 @@ def get_read_strand(read):
 
 def get_read_name(read):
     return read.name.split(";")[0]
+
+
+def rev_comp(seq):
+    complement = {"A": "T", "C": "G", "G": "C", "T": "A"}
+    return "".join(complement.get(base, base) for base in reversed(seq))
+
+def get_read_umi(read):
+    fwd_umi = read.name.split(";umi_fwd_seq=")[1].split(";")[0]
+    rev_umi = read.name.split(";umi_rev_seq=")[1].split(";")[0]
+    strand = get_read_strand(read)
+    if strand == '+':
+        return fwd_umi + rev_umi
+    else:
+        return rev_comp(rev_umi) + rev_comp(fwd_umi)
 
 
 def get_read_mean_qual(read):
@@ -210,8 +224,8 @@ def get_sorted_reads(reads):
 def get_filter_parameters(n_fwd, n_rev, min_reads, max_reads, balance_strands):
     if balance_strands:
         min_fwd = min_rev = min_reads // 2
-        max_reads = min(n_fwd * 2, n_rev * 2, max_reads)
-        max_fwd = max_rev = max_reads // 2
+        max_reads = min(max(n_fwd, n_rev), max_reads)
+        max_fwd = max_rev = max_reads
     else:
         min_fwd = 0
         min_rev = 0
@@ -261,6 +275,19 @@ def write_smolecule(cluster_id, reads, smolecule_file, format):
         for n, read in enumerate(reads):
             seq = get_read_seq(read)
             read_name = "{}_{}".format(cluster_id, n)
+            if format == "fastq":
+                qual = get_read_qual(read)
+                write_fastq_read(read_name, seq, qual, out_f)
+            else:
+                write_fasta_read(read_name, seq, out_f)
+
+
+def write_smolecule_umi(cluster_id, reads, smolecule_file_umi, format):
+    with open(smolecule_file_umi, "w") as out_f:
+        for n, read in enumerate(reads):
+            seq = get_read_seq(read)
+            umi = get_read_umi(read)
+            read_name = "{}_{};umi={}".format(cluster_id, n, umi)
             if format == "fastq":
                 qual = get_read_qual(read)
                 write_fastq_read(read_name, seq, qual, out_f)
@@ -343,6 +370,8 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         smolecule_file = os.path.join(
             output_folder, "smolecule{}.{}".format(cluster_id_subcluster, format)
         )
+        smolecule_file_umi = os.path.join(
+            output_folder, "UMI_smolecule{}.{}".format(cluster_id_subcluster, format))
 
         if write_cluster:
             cluster_written = 1
@@ -350,6 +379,7 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
             reads_written_rev = len(reads_rev)
             reads = reads_fwd + reads_rev
             write_smolecule(cluster_id_subcluster, reads, smolecule_file, format)
+            write_smolecule_umi(cluster_id_subcluster, reads, smolecule_file_umi, format)
 
         if tsv:
             write_tsv_line(
@@ -396,7 +426,10 @@ def parse_cluster_wrapper(args):
             "reads_skipped_rev",
         )
 
-    for cluster in clusters:
+    with open(clusters, 'r') as cluster_list_file:
+        clusters_list = [line.strip() for line in cluster_list_file]
+
+    for cluster in clusters_list:
         # You can run each cluster in its own thread if desired:
         # parse_cluster_thread = t.Thread(target=parse_cluster, args=(
         #     min_reads, max_reads, filter, format, cluster, output_folder, balance_strands, tsv, max_edit_dist, stats_out_filename
