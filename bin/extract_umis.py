@@ -72,7 +72,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         "--cons",
-        dest=CONS,
+        dest="CONS",
         action="store_true",
         help="mark consensus round of extraction"
     )
