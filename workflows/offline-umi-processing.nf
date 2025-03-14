@@ -8,6 +8,7 @@ include {REFORMAT_FILTER_CLUSTER} from '../modules/local/umi_processing/reformat
 include {CLUSTER_STATS} from '../modules/local/umi_processing/cluster_stats.nf'
 include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cluster_stats.nf'
 include {MERGE_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
+include {MERGE_FILTER_STATS} from '../modules/local/umi_processing/merge_filter_stats.nf'
 
 
 workflow OFFLINE_UMI_PROCESSING {
@@ -24,6 +25,7 @@ workflow OFFLINE_UMI_PROCESSING {
 
         bed
         merge_extr_stats
+        merge_filter_stats
 
     main:       
         Channel
@@ -57,6 +59,12 @@ workflow OFFLINE_UMI_PROCESSING {
         .set{ bam_consensus_bed_sets }
 
         SPLIT_READS( bam_consensus_bed_sets, raw, umi_filter_reads )
+
+        SPLIT_READS.out.stats_tsv
+        .groupTuple( by: [0, 1])
+        .set{ filter_stats_to_merge }
+
+        MERGE_FILTER_STATS( filter_stats_to_merge, raw, merge_filter_stats )
 
         SPLIT_READS.out.split_reads_fastx
         .filter{ _sample, _target, fastq -> fastq.countFastq() > params.min_reads_per_barcode }
