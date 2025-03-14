@@ -23,6 +23,7 @@ workflow OFFLINE_UMI_PROCESSING {
         cluster_summary_cache_dir_nf
 
         bed
+        merge_extr_stats
 
     main:       
         Channel

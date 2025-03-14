@@ -84,7 +84,8 @@ workflow UMI_PIPELINE {
                 umi_cluster_report,
                 umi_cluster_stats_summary,
                 cluster_summary_cache_dir_nf,
-                bed_ch
+                bed_ch,
+                merge_extr_stats
             )
 
             OFFLINE_UMI_PROCESSING.out.processed_umis
