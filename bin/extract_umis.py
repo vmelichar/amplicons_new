@@ -92,6 +92,20 @@ def parse_args(argv):
         help="Output filename"
     )
     parser.add_argument(
+        "--output_synthetic",
+        dest="OUT_SYNTHETIC",
+        type=str,
+        required=False,
+        help="Output filename for syntetic extraction"
+    )
+    parser.add_argument(
+        "--output_umi",
+        dest="OUT_UMI",
+        type=str,
+        required=False,
+        help="Output filename for UMI extraction"
+    )
+    parser.add_argument(
         "--output_format",
         dest="OUT_FORMAT",
         type=str,
@@ -558,14 +572,16 @@ def extract_umis(
     umi_fwd = args.FWD_UMI
     umi_rev = args.REV_UMI
     output_file_name = args.OUT_FILENAME
+    output_synthetic_name = args.OUT_SYNTHETIC
+    output_umi_name = args.OUT_UMI
     format = args.OUT_FORMAT
 
     output_file = os.path.join(
         output_folder, "{}.{}".format(output_file_name, format))
     output_stats_synthetic = os.path.join(
-        output_folder, "extract_stats_synthetic.tsv")
+        output_folder, "{}.{}".format(output_synthetic_name, "tsv"))
     output_stats_umi = os.path.join(
-        output_folder, "extract_stats_umi.tsv")
+        output_folder, "{}.{}".format(output_umi_name, "tsv"))
 
     n_total = 0
     n_both_umi = 0

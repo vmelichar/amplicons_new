@@ -66,6 +66,12 @@ workflow OFFLINE_UMI_PROCESSING {
         .groupTuple( by: [0, 1])
         .set{ extracted_umis }
 
+        DETECT_UMI_FASTQ.out.stats_tsv
+        .groupTuple( by: [0, 1])
+        .set{ stats_to_merge }
+
+        MERGE_EXTRACTION_STATS( stats_to_merge, raw, merge_extr_stats )
+
         CLUSTER( extracted_umis, raw )
 
         // Filters the clusters to only keep cluser with more or equal than min_reads_per_cluster, but keeps the grouping per sample
