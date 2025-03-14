@@ -14,6 +14,12 @@ process MERGE_EXTRACTION_STATS {
         def cons = "${type}" == "consensus" ? "--cons" : ""
 
     """
-        cat ${det_umi} > merged_det_umi.tsv
+        python ${merge_extr_stats_python} \
+        --detected_tsv ${det_umi} \
+        --synthetic_tsv ${extr_syn} \
+        --umi_tsv ${extr_umi} \
+        $write_report
+        $cons
+        -o .
     """
 }
