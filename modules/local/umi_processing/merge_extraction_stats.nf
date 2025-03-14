@@ -1,5 +1,5 @@
 process MERGE_EXTRACTION_STATS {
-    publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "merged_det_umi.tsv", mode: 'copy'
+    publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.tsv", mode: 'copy'
 
     input:
         tuple val( sample ), val( target ), path ( det_umi ), path ( extr_syn ), path ( extr_umi )
