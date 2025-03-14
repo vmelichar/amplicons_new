@@ -105,8 +105,8 @@ def merge_detected(files, out_dir):
         print(f'Strand detection error: {error}', file=out)
 
 
-def merge_extraction(files, out_dir):
-    output_file = os.path.join(out_dir, "extraction_synthetic_stats.tsv")
+def merge_extraction(files, out_dir, type):
+    output_file = os.path.join(out_dir, f'extraction_{type}_stats.tsv')
 
     with open(output_file, 'w') as out_f:
         header_written = False
@@ -132,8 +132,8 @@ def main(argv=sys.argv[1:]):
 
     if args.TSV:
         merge_detected(args.DETECTED_TSV, args.OUTPUT)
-        merge_extraction(args.SYNTHETIC_TSV, args.OUTPUT)
-        merge_extraction(args.UMI_TSV, args.OUTPUT)
+        merge_extraction(args.SYNTHETIC_TSV, args.OUTPUT, "synthetic")
+        merge_extraction(args.UMI_TSV, args.OUTPUT, "umi")
 
 
 if __name__ == "__main__":

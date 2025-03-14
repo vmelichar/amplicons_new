@@ -7,7 +7,7 @@ process MERGE_EXTRACTION_STATS {
         path merge_extr_stats_python
     
     output:
-        path "merged_det_umi.tsv"
+        path "*stats.tsv"
 
     script:
         def write_report = params.write_reports ? "--tsv" : ""
