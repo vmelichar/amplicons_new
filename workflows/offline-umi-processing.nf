@@ -7,6 +7,7 @@ include {CLUSTER} from '../modules/local/umi_processing/cluster.nf'
 include {REFORMAT_FILTER_CLUSTER} from '../modules/local/umi_processing/reformat_filter_cluster.nf'
 include {CLUSTER_STATS} from '../modules/local/umi_processing/cluster_stats.nf'
 include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cluster_stats.nf'
+include {MERGE_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
 
 
 workflow OFFLINE_UMI_PROCESSING {
