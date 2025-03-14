@@ -132,7 +132,7 @@ def main(argv=sys.argv[1:]):
 
     if args.TSV:
         merge_detected(args.DETECTED_TSV, args.OUTPUT)
-        merge_extraction(args.SYNTHETIV_TSV, args.OUTPUT)
+        merge_extraction(args.SYNTHETIC_TSV, args.OUTPUT)
         merge_extraction(args.UMI_TSV, args.OUTPUT)
 
 
