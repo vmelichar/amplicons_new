@@ -18,8 +18,8 @@ process MERGE_EXTRACTION_STATS {
         --detected_tsv ${det_umi} \
         --synthetic_tsv ${extr_syn} \
         --umi_tsv ${extr_umi} \
-        $write_report
-        $cons
+        $write_report \
+        $cons \
         -o .
     """
 }

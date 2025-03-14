@@ -34,6 +34,9 @@ def parse_args(argv):
     parser.add_argument(
         "--cons", dest="CONS", action="store_true", help="Mark consensus round of extraction"
     )
+    parser.add_argument(
+        "--tsv", dest="TSV", action="store_true", help="Write stats tsv"
+    )
 
     args = parser.parse_args(argv)
 
@@ -102,15 +105,35 @@ def merge_detected(files, out_dir):
         print(f'Strand detection error: {error}', file=out)
 
 
+def merge_extraction(files, out_dir):
+    output_file = os.path.join(out_dir, "extraction_synthetic_stats.tsv")
+
+    with open(output_file, 'w') as out_f:
+        header_written = False
+        
+        for file in files:
+            with open(file, 'r') as in_f:
+                lines = in_f.readlines()
+                if not lines:
+                    continue
+                
+                if not header_written:
+                    out_f.write(lines[0])  # Write the header from the first file
+                    header_written = True
+                
+                out_f.writelines(lines[1:])
+
+
 def main(argv=sys.argv[1:]):
     """
     Basic command line interface.
     """
     args = parse_args(argv=argv)
 
-    merge_detected(args.DETECTED_TSV, args.OUTPUT)
-    #merge_synthetic(args.SYNTHETIV_TSV, args.OUTPUT)
-    #merge_umi(args.UMI_TSV, args.OUTPUT)
+    if args.TSV:
+        merge_detected(args.DETECTED_TSV, args.OUTPUT)
+        merge_extraction(args.SYNTHETIV_TSV, args.OUTPUT)
+        merge_extraction(args.UMI_TSV, args.OUTPUT)
 
 
 if __name__ == "__main__":
