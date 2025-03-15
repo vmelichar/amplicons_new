@@ -61,7 +61,7 @@ def merge_filter(files, out_dir):
                 if i == 0:
                     out_f.write(lines[0])  # Write the header from the first file
                     region += values[1]
-                    incl += values[11]
+                    incl += values[11].strip()
                 
                 found += int(values[2])
                 unmapped += int(values[3])
