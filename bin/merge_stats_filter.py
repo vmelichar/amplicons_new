@@ -114,7 +114,7 @@ def main(argv=sys.argv[1:]):
     args = parse_args(argv=argv)
 
     if args.TSV:
-        merge_filter(args.FILTER_TSV, args.OUTPUT
+        merge_filter(args.FILTER_TSV, args.OUTPUT)
 
 
 if __name__ == "__main__":
