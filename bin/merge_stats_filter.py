@@ -56,7 +56,7 @@ def merge_filter(files, out_dir):
                 if not lines:
                     continue
 
-                values = lines[1]
+                values = lines[1].split('\t')
                 
                 if i == 0:
                     out_f.write(lines[0])  # Write the header from the first file
