@@ -64,6 +64,8 @@ workflow OFFLINE_UMI_PROCESSING {
         .groupTuple( by: [0, 1])
         .set{ filter_stats_to_merge }
 
+        filter_stats_to_merge.view()
+
         MERGE_FILTER_STATS( filter_stats_to_merge, raw, merge_filter_stats )
 
         SPLIT_READS.out.split_reads_fastx
