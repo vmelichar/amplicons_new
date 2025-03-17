@@ -277,6 +277,10 @@ def write_tsv(n_total, n_unmapped, n_secondary, n_supplementary, n_ontarget, n_c
             concatermer_perc = 100 * n_concatamer // n_ontarget
             short_perc = 100 * n_short // n_ontarget
             long_perc = 100 * n_long // n_ontarget
+        else:
+            concatermer_perc = 0
+            short_perc = 0
+            long_perc = 0
 
         with open(stats_out_filename, "a") as out_f:
             print(
