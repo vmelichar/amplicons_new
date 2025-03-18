@@ -6,6 +6,7 @@ include {REFORMAT_CONSENSUS_CLUSTER} from '../modules/local/umi_polishing/reform
 include {MAP_CONSENSUS; MAP_CONSENSUS as MAP_FINAL_CONSENSUS} from '../modules/local/umi_polishing/map_consensus.nf'
 include {DETECT_UMI_CONSENSUS_FASTQ} from '../modules/local/umi_polishing/detect_umi_consensus_fastq.nf'
 include {CLUSTER_CONSENSUS} from '../modules/local/umi_polishing/cluster_consensus.nf'
+include {MERGE_EXTRACTION_STATS as MERGE_CONSENSUS_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
 
 workflow UMI_POLISHING {
     take:
