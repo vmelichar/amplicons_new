@@ -27,6 +27,7 @@ workflow UMI_PIPELINE {
         umi_cluster_stats_summary   = file( "${projectDir}/bin/summary_cluster_report.py", checkIfExists: true )
         merge_extr_stats            = file( "${projectDir}/bin/merge_stats_extraction.py", checkIfExists: true )
         merge_filter_stats          = file( "${projectDir}/bin/merge_stats_filter.py", checkIfExists: true )
+        export_stats                = file( "${projectDir}/bin/export_stats.py", checkIfExists: true )
 
         // subdirectory and file prefixes
         raw                         = "raw"
@@ -87,7 +88,8 @@ workflow UMI_PIPELINE {
                 cluster_summary_cache_dir_nf,
                 bed_ch,
                 merge_extr_stats,
-                merge_filter_stats
+                merge_filter_stats,
+                export_stats
             )
 
             OFFLINE_UMI_PROCESSING.out.processed_umis
@@ -101,7 +103,8 @@ workflow UMI_PIPELINE {
             final_consensus,
             reference,
             umi_extract,
-            umi_reformat_consensus
+            umi_reformat_consensus,
+            merge_extr_stats
         )
 
         VARIANT_CALLING(

@@ -9,6 +9,8 @@ include {CLUSTER_STATS} from '../modules/local/umi_processing/cluster_stats.nf'
 include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cluster_stats.nf'
 include {MERGE_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
 include {MERGE_FILTER_STATS} from '../modules/local/umi_processing/merge_filter_stats.nf'
+include {STRAND_STATS} from '../modules/local/umi_processing/strand_stats.nf'
+include {EXPORT_FILTER_STATS} from '../modules/local/umi_processing/export_filter_stats.nf'
 
 
 workflow OFFLINE_UMI_PROCESSING {
@@ -26,6 +28,7 @@ workflow OFFLINE_UMI_PROCESSING {
         bed
         merge_extr_stats
         merge_filter_stats
+        export_stats
 
     main:       
         Channel
@@ -78,6 +81,24 @@ workflow OFFLINE_UMI_PROCESSING {
         .groupTuple( by: [0, 1])
         .set{ extracted_umis }
 
+        SPLIT_READS.out.split_reads_fastx_conca
+        .groupTuple( by: [0, 1])
+        .set{ strand_conca }
+        
+        SPLIT_READS.out.split_reads_fastx_short
+        .groupTuple( by: [0, 1])
+        .set{ strand_short }
+        
+        SPLIT_READS.out.split_reads_fastx_long
+        .groupTuple( by: [0, 1])
+        .set{ strand_long }
+
+        SPLIT_READS.out.split_reads_fastx
+        .groupTuple( by: [0, 1])
+        .set{ strand_filter }
+
+        STRAND_STATS(extracted_umis, strand_conca, strand_short, strand_long, strand_filter, raw)
+
         DETECT_UMI_FASTQ.out.stats_tsv
         .groupTuple( by: [0, 1])
         .set{ stats_to_merge }
@@ -106,6 +127,8 @@ workflow OFFLINE_UMI_PROCESSING {
                 tuple(sample, type, fastqs)
         }
         .set{ processed_umis }
+
+        EXPORT_FILTER_STATS( export_stats )
 
         emit:
             processed_umis
