@@ -96,8 +96,11 @@ workflow OFFLINE_UMI_PROCESSING {
         .set{ strand_filter }
 
         extracted_umis
-        .combine(strand_conca, strand_short, strand_long, strand_filter, by: [0, 1])
-        .set{ channel_to_strand }
+        .join(strand_conca, by: [0, 1])
+        .join(strand_short, by: [0, 1])
+        .join(strand_long, by: [0, 1])
+        .join(strand_filter, by: [0, 1])
+        .set { channel_to_strand }
 
         STRAND_STATS(channel_to_strand, raw)
 
