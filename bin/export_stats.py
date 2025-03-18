@@ -117,7 +117,8 @@ def get_detected_umis_stats(barcode, df, input):
         line = f.readlines()[1]
 
     reads_used = int(line.split('\t')[6].strip())
-    reads_used_perc_part = f'{round(float(line.split(r"\t")[7].strip()), 1)}%'
+    tabul = '\t'
+    reads_used_perc_part = f'{round(float(line.split(tabul)[7].strip()), 1)}%'
     reads_used_perc_tot = f"{round(reads_used / int(df.at['reads_found', f'{hs}_count']) * 100, 1)}%"
 
     with open(file_strands, 'r') as f:
