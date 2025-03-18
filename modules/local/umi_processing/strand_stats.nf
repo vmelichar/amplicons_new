@@ -2,11 +2,7 @@ process STRAND_STATS {
     publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.txt", mode: 'copy'
 
     input:
-        tuple val( sample ), val( target ), path ( strand_umi )
-        tuple val( sample ), val( target ), path ( strand_conca )
-        tuple val( sample ), val( target ), path ( strand_short )
-        tuple val( sample ), val( target ), path ( strand_long )
-        tuple val( sample ), val( target ), path ( strand_filter )
+        tuple val( sample ), val( target ), path ( strand_umi ), path ( strand_conca ), path ( strand_short ), path ( strand_long ), path ( strand_filter )
         val ( type )
     
     output:

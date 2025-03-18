@@ -82,8 +82,6 @@ workflow OFFLINE_UMI_PROCESSING {
         SPLIT_READS.out.split_reads_fastx_conca
         .groupTuple( by: [0, 1])
         .set{ strand_conca }
-
-        strand_conca.view()
         
         SPLIT_READS.out.split_reads_fastx_short
         .groupTuple( by: [0, 1])
@@ -97,7 +95,11 @@ workflow OFFLINE_UMI_PROCESSING {
         .groupTuple( by: [0, 1])
         .set{ strand_filter }
 
-        STRAND_STATS(extracted_umis, strand_conca, strand_short, strand_long, strand_filter, raw)
+        extracted_umis
+        .combine(strand_conca, strand_short, strand_long, strand_filter, by: [0, 1])
+        .set{ channel_to_strand }
+
+        STRAND_STATS(channel_to_strand, raw)
 
         DETECT_UMI_FASTQ.out.stats_tsv
         .groupTuple( by: [0, 1])
