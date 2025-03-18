@@ -128,7 +128,7 @@ workflow OFFLINE_UMI_PROCESSING {
         }
         .set{ processed_umis }
 
-        EXPORT_FILTER_STATS( export_stats )
+        EXPORT_FILTER_STATS( export_stats, CLUSTER_STATS.out.cluster_stats )
 
         emit:
             processed_umis

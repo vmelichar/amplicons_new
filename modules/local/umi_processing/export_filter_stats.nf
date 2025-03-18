@@ -3,6 +3,7 @@ process EXPORT_FILTER_STATS {
 
     input:
         path export_stats
+        path cluster_stats
     
     output:
         tuple val( "${sample}" ), path ( "*.csv" )
