@@ -191,7 +191,7 @@ def filter_reads(args):
     output = args.OUT
     out_format = args.OUT_FORMAT
     tsv = args.TSV
-    output_filename = "{}_filtered".format(args.OUT_FILENAME)
+    output_filename = args.OUT_FILENAME
     stats_out_filename = "{}_filter_stats".format(args.OUT_FILENAME)
 
     n_non_reads = 0
@@ -221,38 +221,38 @@ def filter_reads(args):
             n_total += 1
             if read.is_unmapped:
                 n_unmapped += 1
-                write_read(read, output, "unmapped", out_format)
+                write_read(read, output, f"{output_filename}_unmapped", out_format)
                 continue
 
             if read.is_secondary:
                 n_secondary += 1
                 if not incl_sec:
-                    write_read(read, output, "secondary", out_format)
+                    write_read(read, output, f"{output_filename}_secondary", out_format)
                     continue
 
             if read.is_supplementary:
                 n_supplementary += 1
-                write_read(read, output, "supplementary", out_format)
+                write_read(read, output, f"{output_filename}_supplementary", out_format)
                 continue
 
             n_ontarget += 1
             if read.query_alignment_length < (read.query_length - 2 * adapter_length):
                 n_concatamer += 1
-                write_read(read, output, "concatamer", out_format)
+                write_read(read, output, f"{output_filename}_concatamer", out_format)
                 continue
 
             if read.query_alignment_length < (region_length * min_overlap):
                 n_short += 1
-                write_read(read, output, "short", out_format)
+                write_read(read, output, f"{output_filename}_short", out_format)
                 continue
             
             if read.query_length > (region_length * ( 2 - min_overlap) + 2 * adapter_length):
                 n_long += 1
-                write_read(read, output, "long", out_format)
+                write_read(read, output, f"{output_filename}_long", out_format)
                 continue
             
             n_reads_region += 1
-            write_read(read, output, output_filename, out_format)
+            write_read(read, output, f"{output_filename}_filtered", out_format)
 
     if tsv:
         stats_out_filename = os.path.join(

@@ -3,11 +3,11 @@ process STRAND_STATS {
 
     input:
         tuple val(sample), val(target)
-        path(strand_umi, list: true)
-        path(strand_conca, list: true)
-        path(strand_short, list: true)
-        path(strand_long, list: true)
-        path(strand_filter, list: true)
+        path(strand_umi)
+        path(strand_conca)
+        path(strand_short)
+        path(strand_long)
+        path(strand_filter)
         val(type)
 
     output:
