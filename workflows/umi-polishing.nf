@@ -70,7 +70,7 @@ workflow UMI_POLISHING {
         MAP_FINAL_CONSENSUS.out.bam_consensus
         .map{ sample, target, bam, bai -> tuple(target, sample, bam, bai)}
         .join(bed_ch)
-        .set(snp_analysis_bam)
+        .set{snp_analysis_bam}
 
     emit: 
         consensus_bam = MAP_CONSENSUS.out.bam_consensus
