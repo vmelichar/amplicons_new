@@ -1,5 +1,6 @@
 process ANALYSIS_SNP {
-    publishDir "${params.output}/${sample}/${target}/analysis", pattern: "XXXX", mode: 'copy'
+    publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.csv", mode: 'copy'
+    publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.png", mode: 'copy'
 
     input:
         tuple val( target ), val( sample ), path ( bam ), path ( bai ), path ( bed )
@@ -9,18 +10,21 @@ process ANALYSIS_SNP {
         path analysis_script
     
     output:
-        // path "*stats.tsv", emit: stats_tsv
+        path "*.csv"
+        path "*.png"
+        path "*.txt"
 
     script:
 
     """
         python ${analysis_script} \
-        ${bam} \
-        ${bai} \
-        ${variants_vcf}
-        ${varinats_tbi}
-        ${positions_file}
-        .
+        --hs ${target} \
+        --bam ${bam} \
+        --bai ${bai} \
+        --vcf ${variants_vcf} \
+        --tbi ${varinats_tbi} \
+        --positions ${positions_file} \
+        -o .
         
     """
 }
