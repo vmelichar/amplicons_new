@@ -4,6 +4,7 @@ include { LIVE_UMI_PROCESSING       } from './live-umi-processing.nf'
 include { OFFLINE_UMI_PROCESSING    } from './offline-umi-processing.nf'
 include { UMI_POLISHING             } from './umi-polishing.nf'
 include { VARIANT_CALLING           } from './variant_calling.nf'
+include { ANALYSIS                  } from './analysis.nf'
 include { PARSE_BED                 } from '../modules/local/parse_bed.nf'
 
 workflow UMI_PIPELINE {
@@ -17,6 +18,7 @@ workflow UMI_PIPELINE {
         bed                         = file("${params.bed}", checkIfExists: true)
         reference                   = file("${params.reference}", checkIfExists: true)
         reference_fai               = file("${params.reference_fai}", checkIfExists: true)
+        positions_file              = file("${params.positions}", checkIfExists: true)
 
         // python scripts
         umi_filter_reads            = file( "${projectDir}/bin/filter_reads.py", checkIfExists: true)
@@ -28,6 +30,7 @@ workflow UMI_PIPELINE {
         merge_extr_stats            = file( "${projectDir}/bin/merge_stats_extraction.py", checkIfExists: true )
         merge_filter_stats          = file( "${projectDir}/bin/merge_stats_filter.py", checkIfExists: true )
         export_stats                = file( "${projectDir}/bin/export_stats.py", checkIfExists: true )
+        analysis_script             = file( "${projectDir}/bin/analysis_snp.py", checkIfExists: true)
 
         // subdirectory and file prefixes
         raw                         = "raw"
@@ -104,7 +107,8 @@ workflow UMI_PIPELINE {
             umi_extract,
             umi_reformat_consensus,
             merge_extr_stats,
-            export_stats
+            export_stats,
+            bed_ch
         )
 
         VARIANT_CALLING(
@@ -115,5 +119,11 @@ workflow UMI_PIPELINE {
             reference,
             reference_fai,
             bed_ch
+        )
+
+        ANALYSIS(
+            UMI_POLISHING.out.snp_analysis_bam,
+            analysis_script,
+            positions_file
         )
 }

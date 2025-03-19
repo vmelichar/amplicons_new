@@ -20,6 +20,7 @@ workflow UMI_POLISHING {
         umi_reformat_consensus
         merge_extr_stats
         export_stats
+        bed_ch
 
     main:
          GLUE_CLUSTERS(processed_umis, consensus)
@@ -66,10 +67,14 @@ workflow UMI_POLISHING {
         REFORMAT_CONSENSUS_CLUSTER( CLUSTER_CONSENSUS.out.consensus_fasta, final_consensus, umi_reformat_consensus )
         MAP_FINAL_CONSENSUS( REFORMAT_CONSENSUS_CLUSTER.out.consensus_fastq, final_consensus, reference )
         
-
+        MAP_FINAL_CONSENSUS.out.bam_consensus
+        .map{ sample, target, bam, bai -> tuple(target, sample, bam, bai)}
+        .join(bed_ch)
+        .set(snp_analysis_bam)
 
     emit: 
         consensus_bam = MAP_CONSENSUS.out.bam_consensus
         final_consensus_bam = MAP_FINAL_CONSENSUS.out.bam_consensus
+        snp_analysis_bam
 
 }
