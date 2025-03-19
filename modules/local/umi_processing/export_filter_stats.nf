@@ -9,6 +9,6 @@ process EXPORT_FILTER_STATS {
         tuple val( "${sample}" ), path ( "*.csv" )
 
     """
-        python ${export_stats} -i ${params.output}
+        python ${export_stats} -i "${workflow.projectDir}/${params.output}"
     """
 }
