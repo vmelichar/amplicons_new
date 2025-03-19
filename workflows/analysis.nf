@@ -5,9 +5,11 @@ workflow ANALYSIS {
         final_bam
         analysis_script
         positions_file
+        variants_vcf
+        variants_tbi
 
     main:
-        ANALYSIS_SNP(final_bam, positions_file, analysis_script)
+        ANALYSIS_SNP(final_bam, positions_file, variants_vcf, variants_tbi, analysis_script)
         
 
 }

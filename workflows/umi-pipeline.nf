@@ -19,6 +19,8 @@ workflow UMI_PIPELINE {
         reference                   = file("${params.reference}", checkIfExists: true)
         reference_fai               = file("${params.reference_fai}", checkIfExists: true)
         positions_file              = file("${params.positions}", checkIfExists: true)
+        variants_vcf                = file("${params.vcf}", checkIfExists: true)
+        variants_tbi                = file("${params.vcf_tbi}", checkIfExists: true)
 
         // python scripts
         umi_filter_reads            = file( "${projectDir}/bin/filter_reads.py", checkIfExists: true)
@@ -124,6 +126,8 @@ workflow UMI_PIPELINE {
         ANALYSIS(
             UMI_POLISHING.out.snp_analysis_bam,
             analysis_script,
-            positions_file
+            positions_file,
+            variants_vcf,
+            variants_tbi
         )
 }
