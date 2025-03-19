@@ -1,4 +1,5 @@
 process EXPORT_FILTER_STATS {
+    conda '/home/melichv/miniconda3/envs/amplicons'
     publishDir "${params.output}/${sample}/export", pattern: "*.csv", mode: 'copy'
 
     input:
