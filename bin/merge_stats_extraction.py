@@ -87,7 +87,10 @@ def merge_detected(files, out_dir):
 
             error += n_error
         
-        ratio = fwd / rev
+        if rev == 0:
+            ratio = 0
+        else:
+            ratio = fwd / rev
         perc_total = included / total
 
         print(
