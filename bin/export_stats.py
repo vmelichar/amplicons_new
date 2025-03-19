@@ -110,7 +110,7 @@ def get_basic_strand_stats_to_dict(barcode, strand, input):
 
 def get_detected_umis_stats(barcode, df, input):
     hs = f'HS{barcode}'
-    file = f'{input}/barcode01/HS{barcode}/stats/raw/detected_umis_stats.tsv'
+    file = f'{input}/barcode01/HS{barcode}/stats/raw/detected_umi_stats.tsv'
     file_strands = f'{input}/barcode01/HS{barcode}/stats/raw/umi_strand_filter.txt'
 
     with open(file, 'r') as f:
