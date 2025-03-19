@@ -88,8 +88,7 @@ workflow UMI_PIPELINE {
                 cluster_summary_cache_dir_nf,
                 bed_ch,
                 merge_extr_stats,
-                merge_filter_stats,
-                export_stats
+                merge_filter_stats
             )
 
             OFFLINE_UMI_PROCESSING.out.processed_umis
@@ -104,7 +103,8 @@ workflow UMI_PIPELINE {
             reference,
             umi_extract,
             umi_reformat_consensus,
-            merge_extr_stats
+            merge_extr_stats,
+            export_stats
         )
 
         VARIANT_CALLING(

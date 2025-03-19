@@ -10,7 +10,6 @@ include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cl
 include {MERGE_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
 include {MERGE_FILTER_STATS} from '../modules/local/umi_processing/merge_filter_stats.nf'
 include {STRAND_STATS} from '../modules/local/umi_processing/strand_stats.nf'
-include {EXPORT_FILTER_STATS} from '../modules/local/umi_processing/export_filter_stats.nf'
 
 
 workflow OFFLINE_UMI_PROCESSING {
@@ -28,7 +27,6 @@ workflow OFFLINE_UMI_PROCESSING {
         bed
         merge_extr_stats
         merge_filter_stats
-        export_stats
 
     main:       
         Channel
@@ -132,8 +130,6 @@ workflow OFFLINE_UMI_PROCESSING {
                 tuple(sample, type, fastqs)
         }
         .set{ processed_umis }
-
-        EXPORT_FILTER_STATS( export_stats, CLUSTER_STATS.out.cluster_stats )
 
         emit:
             processed_umis

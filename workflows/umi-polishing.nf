@@ -7,6 +7,7 @@ include {MAP_CONSENSUS; MAP_CONSENSUS as MAP_FINAL_CONSENSUS} from '../modules/l
 include {DETECT_UMI_CONSENSUS_FASTQ} from '../modules/local/umi_polishing/detect_umi_consensus_fastq.nf'
 include {CLUSTER_CONSENSUS} from '../modules/local/umi_polishing/cluster_consensus.nf'
 include {MERGE_EXTRACTION_STATS as MERGE_CONSENSUS_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
+include {EXPORT_FILTER_STATS} from '../modules/local/umi_polishing/export_filter_stats.nf'
 
 workflow UMI_POLISHING {
     take:
@@ -18,6 +19,7 @@ workflow UMI_POLISHING {
         umi_extract
         umi_reformat_consensus
         merge_extr_stats
+        export_stats
 
     main:
          GLUE_CLUSTERS(processed_umis, consensus)
@@ -57,6 +59,8 @@ workflow UMI_POLISHING {
         .set{ stats_to_merge_cons }
 
         MERGE_CONSENSUS_EXTRACTION_STATS( stats_to_merge_cons, consensus, merge_extr_stats )
+
+        EXPORT_FILTER_STATS( export_stats, MERGE_CONSENSUS_EXTRACTION_STATS.out.stats_tsv )
 
         CLUSTER_CONSENSUS( DETECT_UMI_CONSENSUS_FASTQ.out.umi_extract_fastq , consensus )
         REFORMAT_CONSENSUS_CLUSTER( CLUSTER_CONSENSUS.out.consensus_fasta, final_consensus, umi_reformat_consensus )
