@@ -339,7 +339,7 @@ def get_cluster_stats_to_list(hs, input, func=['med','mean']):
         df_0_list = [round(i,2) for i in df_0_list]
         df_1_list = [round(i,2) for i in df_1_list]
 
-    file_det = f'{input}/barcode01/HS{hs[2]}/stats/raw/detected_umis_stats.tsv'
+    file_det = f'{input}/barcode01/HS{hs[2]}/stats/raw/detected_umi_stats.tsv'
 
     with open(file_det, 'r') as f_det:
         line_det = f_det.readlines()[1]
