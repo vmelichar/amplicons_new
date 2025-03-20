@@ -4,7 +4,7 @@ process EXPORT_FILTER_STATS {
 
     input:
         path export_stats
-        val ( dummy )
+        val ( sample )
     
     output:
         tuple val( "${sample}" ), path ( "*.csv" )
