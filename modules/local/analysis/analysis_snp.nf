@@ -23,7 +23,7 @@ process ANALYSIS_SNP {
         --bam ${bam} \
         --bai ${bai} \
         --vcf ${variants_vcf} \
-        --tbi ${varinats_tbi} \
+        --tbi ${variants_tbi} \
         --positions ${positions_file} \
         -o .
         
