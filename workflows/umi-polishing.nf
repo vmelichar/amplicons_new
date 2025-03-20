@@ -61,7 +61,7 @@ workflow UMI_POLISHING {
 
         MERGE_CONSENSUS_EXTRACTION_STATS( stats_to_merge_cons, consensus, merge_extr_stats )
 
-        EXPORT_FILTER_STATS( export_stats, MERGE_CONSENSUS_EXTRACTION_STATS.out.stats_tsv )
+        EXPORT_FILTER_STATS( export_stats, MERGE_CONSENSUS_EXTRACTION_STATS.out.dummy )
 
         CLUSTER_CONSENSUS( DETECT_UMI_CONSENSUS_FASTQ.out.umi_extract_fastq , consensus )
         REFORMAT_CONSENSUS_CLUSTER( CLUSTER_CONSENSUS.out.consensus_fasta, final_consensus, umi_reformat_consensus )

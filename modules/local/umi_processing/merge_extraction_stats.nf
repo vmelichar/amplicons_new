@@ -8,6 +8,7 @@ process MERGE_EXTRACTION_STATS {
     
     output:
         path "*stats.tsv", emit: stats_tsv
+        val ( "dummy" ), emit: dummy
 
     script:
         def write_report = params.write_reports ? "--tsv" : ""
