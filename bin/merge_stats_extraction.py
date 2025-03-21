@@ -91,7 +91,7 @@ def merge_detected(files, out_dir):
             ratio = 0
         else:
             ratio = fwd / rev
-        perc_total = included / total
+        perc_total = included / total * 100
 
         print(
             name,
