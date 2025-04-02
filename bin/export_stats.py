@@ -421,6 +421,10 @@ def get_sankey_values(hs,input,low_clusters):
 
     low_cluster_count = low_clusters[int(hs) - 1]
 
+    singletons = det_umi - low_cluster_count - cl_0 - cl_1
+
+    recombo = df[df['cluster_id'].isin(get_recombo_clusters_names(hs,input))]['reads_found'].sum()
+
     return [
             filter_values['reads_unmapped'], 
             filter_values['reads_secondary'],
@@ -432,11 +436,11 @@ def get_sankey_values(hs,input,low_clusters):
             filter_values['reads_filtered'],
             undetected_umi,
             det_umi,
-            100,
+            singletons,
             low_cluster_count,
             cl_0,
             cl_1,
-            50
+            recombo
             ]
 
 
@@ -453,6 +457,12 @@ def get_sankey_all(input,low_clusters):
 
 
 # MISCELLANEOUS
+
+def get_recombo_clusters_names(hs, input):
+    file = f'{input}/barcode01/HS{hs}/analysis/analysis_HS{hs}_perc_counts.csv'
+    df = read_csv(file)
+    return list(df['read'])
+
 
 def check_strands(df):
     n_err = 0
