@@ -406,7 +406,7 @@ def get_sankey_values(hs,input,low_clusters):
 
     file_detection = f'{input}/barcode01/HS{hs}/stats/raw/detected_umi_stats.tsv'
 
-    with open(file, 'r') as f:
+    with open(file_detection, 'r') as f:
         line = f.readlines()[1]
 
     det_umi = int(line.split('\t')[6].strip())
