@@ -422,14 +422,14 @@ def get_sankey_values(hs,input,low_clusters):
     low_cluster_count = low_clusters[int(hs) - 1]
 
     return [
-            filter_values.reads_unmapped, 
-            filter_values.reads_secondary,
-            filter_values.reads_supplementary,
-            filter_values.reads_on_target,
-            filter_values.reads_concatamer,
-            filter_values.reads_short,
-            filter_values.reads_long,
-            filter_values.reads_filtered,
+            filter_values['reads_unmapped'], 
+            filter_values['reads_secondary'],
+            filter_values['reads_supplementary'],
+            filter_values['reads_on_target'],
+            filter_values['reads_concatamer'],
+            filter_values['reads_short'],
+            filter_values['reads_long'],
+            filter_values['reads_filtered'],
             undetected_umi,
             det_umi,
             100,
