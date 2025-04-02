@@ -24,7 +24,10 @@
         "output": { "type": "string", "default": null, "description": "Name of the output directory where results will be stored." },
         "reference": { "type": "string", "default": null, "description": "Path to the reference genome in FASTA format." },
         "reference_fai": { "type": "string", "default": null, "description": "Path to the reference genome index file." },
-        "bed": { "type": "string", "default": null, "description": "Path to the BED file specifying target regions." }
+        "bed": { "type": "string", "default": null, "description": "Path to the BED file specifying target regions." },
+        "positions": { "type": "string", "default": null, "description": "Path to the positions .txt file" },
+        "vcf": { "type": "string", "default": null, "description": "Path to the VCF file" },
+        "vcf_tbi": { "type": "string", "default": null, "description": "Path to the index of VCF file (.tbi)" }
       }
     },
     "live": {
