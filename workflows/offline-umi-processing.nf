@@ -126,7 +126,7 @@ workflow OFFLINE_UMI_PROCESSING {
                 total_low_count > 0 ? [barcode, target, total_low_count] : null
             }
             .filter { it != null }
-            .groupBy { it[0] } // Group by barcode
+            .groupTuple ( by: [0] ) // Group by barcode
             .map { barcode, values -> 
                 def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
                 [barcode, target_counts] // Single unpackable value

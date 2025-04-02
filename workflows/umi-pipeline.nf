@@ -104,7 +104,6 @@ workflow UMI_PIPELINE {
 
         UMI_POLISHING(
             processed_umis,
-            low_clusters_counts,
             n_parsed_cluster,
             consensus,
             final_consensus,
@@ -112,7 +111,6 @@ workflow UMI_PIPELINE {
             umi_extract,
             umi_reformat_consensus,
             merge_extr_stats,
-            export_stats,
             bed_ch
         )
 
@@ -131,6 +129,8 @@ workflow UMI_PIPELINE {
             analysis_script,
             positions_file,
             variants_vcf,
-            variants_tbi
+            variants_tbi,
+            export_stats,
+            low_clusters_counts
         )
 }
