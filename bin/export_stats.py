@@ -461,7 +461,9 @@ def get_sankey_all(input,low_clusters):
 def get_recombo_clusters_names(hs, input):
     file = f'{input}/barcode01/HS{hs}/analysis/analysis_HS{hs}_perc_counts.csv'
     df = pd.read_csv(file)
-    return list(df['read'])
+    names = [i.split('=')[1].replace('_', '_sub') for i in list(df['read'])]
+
+    return names
 
 
 def check_strands(df):
