@@ -98,10 +98,13 @@ workflow UMI_PIPELINE {
 
             OFFLINE_UMI_PROCESSING.out.processed_umis
                 .set{ processed_umis }
+            OFFLINE_UMI_PROCESSING.out.low_clusters_counts
+                .set{ low_clusters_counts }
         }
 
         UMI_POLISHING(
             processed_umis,
+            low_clusters_counts,
             n_parsed_cluster,
             consensus,
             final_consensus,

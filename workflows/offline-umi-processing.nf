@@ -119,6 +119,20 @@ workflow OFFLINE_UMI_PROCESSING {
             .filter { it != null }
             .set{ cluster_fastas }
 
+        CLUSTER.out.cluster_fastas
+            .map { barcode, target, clusters -> 
+                def total_low_count = clusters.findAll { fasta -> fasta.countFasta() < params.min_reads_per_cluster }
+                                      .sum { fasta -> fasta.countFasta() } ?: 0
+                total_low_count > 0 ? [barcode, target, total_low_count] : null
+            }
+            .filter { it != null }
+            .groupBy { it[0] } // Group by barcode
+            .map { barcode, values -> 
+                def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
+                [barcode, target_counts] // Single unpackable value
+                }
+            .set { low_clusters_counts }
+
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 
         CLUSTER_STATS( REFORMAT_FILTER_CLUSTER.out.smolecule_cluster_stats, raw, umi_cluster_report )
@@ -133,5 +147,6 @@ workflow OFFLINE_UMI_PROCESSING {
 
         emit:
             processed_umis
+            low_clusters_counts
 
 }

@@ -12,6 +12,7 @@ include {EXPORT_FILTER_STATS} from '../modules/local/umi_polishing/export_filter
 workflow UMI_POLISHING {
     take:
         processed_umis
+        low_clusters_counts
         n_parsed_cluster
         consensus
         final_consensus
@@ -61,7 +62,7 @@ workflow UMI_POLISHING {
 
         MERGE_CONSENSUS_EXTRACTION_STATS( stats_to_merge_cons, consensus, merge_extr_stats )
 
-        EXPORT_FILTER_STATS( export_stats, MERGE_CONSENSUS_EXTRACTION_STATS.out.dummy )
+        EXPORT_FILTER_STATS( export_stats, low_clusters_counts )
 
         CLUSTER_CONSENSUS( DETECT_UMI_CONSENSUS_FASTQ.out.umi_extract_fastq , consensus )
         REFORMAT_CONSENSUS_CLUSTER( CLUSTER_CONSENSUS.out.consensus_fasta, final_consensus, umi_reformat_consensus )

@@ -23,6 +23,9 @@ def parse_args(argv):
     parser.add_argument(
         "-i", "--input", dest="INPUT", required=True, help="Input folder"
     )
+    parser.add_argument(
+        "-l", "--low_clusters", dest="LOW_CL", required=True, nargs="+", help="Counts for low clusters"
+    )
 
     args = parser.parse_args(argv)
 
@@ -395,6 +398,59 @@ def get_csv_cluster(input):
 
     return df_med, df_mean
 
+# SANKEY
+
+def get_sankey_values(hs,input,low_clusters):
+
+    filter_values = get_basic_stats_to_dict(hs, input)
+
+    file_detection = f'{input}/barcode01/HS{hs}/stats/raw/detected_umi_stats.tsv'
+
+    with open(file, 'r') as f:
+        line = f.readlines()[1]
+
+    det_umi = int(line.split('\t')[6].strip())
+
+    undetected_umi = int(filter_values['reads_filtered']) - det_umi
+
+    file_clustering = f'{input}/barcode01/HS{hs}/stats/raw/split_cluster_stats.tsv'
+    df = pd.read_csv(file, sep='\t', header=0)
+
+    cl_0 = df[df['cluster_written'] == 0]['reads_found'].sum()
+    cl_1 = df[df['cluster_written'] == 1]['reads_found'].sum()
+
+    low_cluster_count = low_clusters[int(hs) - 1]
+
+    return [
+            filter_values.reads_unmapped, 
+            filter_values.reads_secondary,
+            filter_values.reads_supplementary,
+            filter_values.reads_on_target,
+            filter_values.reads_concatamer,
+            filter_values.reads_short,
+            filter_values.reads_long,
+            filter_values.reads_filtered,
+            undetected_umi,
+            det_umi,
+            100,
+            low_cluster_count,
+            cl_0,
+            cl_1,
+            50
+            ]
+
+
+def get_sankey_all(input,low_clusters):
+
+    sources = [0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 10, 10, 10, 10, 14]
+    targets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+    for hs in [1,2,3,4,5,6,7,8]:
+        values = get_sankey_values(hs, input, low_clusters)
+
+        df = pd.DataFrame({'source': sources, 'target': targets, 'value': values})
+        df.to_csv(f'sankey_HS{hs}.csv', index=False)
+
 
 # MISCELLANEOUS
 
@@ -432,6 +488,8 @@ def main(argv=sys.argv[1:]):
     print('Parsing cluster stats...')
     df_cluster_med, df_cluster_mean = get_csv_cluster(args.INPUT)
 
+    print('Sankey values calculation...')
+    get_sankey_all(args.INPUT, args.LOW_CL)
 
 
 if __name__ == '__main__':
