@@ -416,10 +416,10 @@ def get_sankey_values(hs,input,low_clusters):
     file_clustering = f'{input}/barcode01/HS{hs}/stats/raw/split_cluster_stats.tsv'
     df = pd.read_csv(file_clustering, sep='\t', header=0)
 
-    cl_0 = df[df['cluster_written'] == 0]['reads_found'].sum()
-    cl_1 = df[df['cluster_written'] == 1]['reads_found'].sum()
+    cl_0 = int(df[df['cluster_written'] == 0]['reads_found'].sum())
+    cl_1 = int(df[df['cluster_written'] == 1]['reads_found'].sum())
 
-    low_cluster_count = low_clusters[int(hs) - 1]
+    low_cluster_count = int(low_clusters[int(hs) - 1])
 
     singletons = det_umi - low_cluster_count - cl_0 - cl_1
 
