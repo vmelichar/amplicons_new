@@ -26,6 +26,9 @@ def parse_args(argv):
     parser.add_argument(
         "-l", "--low_clusters", dest="LOW_CL", required=True, nargs="+", help="Counts for low clusters"
     )
+    parser.add_argument(
+        "-h", "--hs_index", dest="HS_IDX", required=True, nargs="+", help="HS index for counts of low clusters"
+    )
 
     args = parser.parse_args(argv)
 
@@ -400,7 +403,7 @@ def get_csv_cluster(input):
 
 # SANKEY
 
-def get_sankey_values(hs,input,low_clusters):
+def get_sankey_values(hs,input,low_clusters,hs_index):
 
     filter_values = get_basic_stats_to_dict(hs, input)
 
@@ -419,7 +422,8 @@ def get_sankey_values(hs,input,low_clusters):
     cl_0 = int(df[df['cluster_written'] == 0]['reads_found'].sum())
     cl_1 = int(df[df['cluster_written'] == 1]['reads_found'].sum())
 
-    low_cluster_count = int(low_clusters[int(hs) - 1])
+    hs_idx = hs_index.index(f'HS{hs}')
+    low_cluster_count = int(low_clusters[hs_idx])
 
     singletons = det_umi - low_cluster_count - cl_0 - cl_1
 
@@ -444,13 +448,13 @@ def get_sankey_values(hs,input,low_clusters):
             ]
 
 
-def get_sankey_all(input,low_clusters):
+def get_sankey_all(input,low_clusters,hs_index):
 
     sources = [0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 10, 10, 10, 10, 14]
     targets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
     for hs in [1,2,3,4,5,6,7,8]:
-        values = get_sankey_values(hs, input, low_clusters)
+        values = get_sankey_values(hs, input, low_clusters, hs_index)
 
         df = pd.DataFrame({'source': sources, 'target': targets, 'value': values})
         df.to_csv(f'sankey_HS{hs}.csv', index=False)
@@ -501,7 +505,7 @@ def main(argv=sys.argv[1:]):
     df_cluster_med, df_cluster_mean = get_csv_cluster(args.INPUT)
 
     print('Sankey values calculation...')
-    get_sankey_all(args.INPUT, args.LOW_CL)
+    get_sankey_all(args.INPUT, args.LOW_CL, args.HS_IDX)
 
 
 if __name__ == '__main__':

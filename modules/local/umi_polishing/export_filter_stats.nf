@@ -4,12 +4,12 @@ process EXPORT_FILTER_STATS {
 
     input:
         path export_stats
-        tuple val ( sample ), val ( low_clusters_counts )
+        tuple val ( sample ), val ( hs_index ), val ( low_clusters_counts )
     
     output:
         tuple val( "${sample}" ), path ( "*.csv" )
 
     """
-        python ${export_stats} -i "${workflow.launchDir}/${params.output}" -l ${low_clusters_count}
+        python ${export_stats} -i "${workflow.launchDir}/${params.output}" -l ${low_clusters_count} -h ${hs_index}
     """
 }
