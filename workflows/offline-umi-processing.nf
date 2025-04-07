@@ -123,7 +123,7 @@ workflow OFFLINE_UMI_PROCESSING {
             .map { barcode, target, clusters -> 
                 def total_low_count = clusters.findAll { fasta -> fasta.countFasta() < params.min_reads_per_cluster }
                                       .sum { fasta -> fasta.countFasta() } ?: 0
-                total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
+                total_low_count > 0 ? [barcode, target, total_low_count] : null
             }
             .view { "After map (filter low count clusters): $it" }  // See which tuples were kept
             .filter { it != null }
