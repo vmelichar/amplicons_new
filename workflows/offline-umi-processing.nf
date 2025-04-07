@@ -120,22 +120,24 @@ workflow OFFLINE_UMI_PROCESSING {
             .set{ cluster_fastas }
 
         CLUSTER.out.cluster_fastas
-            .map { barcode, target, clusters -> 
-                def total_low_count = clusters.findAll { fasta -> fasta.countFasta() < params.min_reads_per_cluster }
-                                      .sum { fasta -> fasta.countFasta() } ?: 0
-                total_low_count > 0 ? [barcode, target, total_low_count] : null
+            .debug(label: 'RAW INPUT') // 👀 Show initial input: (barcode, target, clusters)
+            .map { barcode, target, clusters ->
+                def total_low_count = clusters.findAll { it.countFasta() < params.min_reads_per_cluster }
+                                    .sum { it.countFasta() } ?: 0
+            total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
-            .view { "After map (filter low count clusters): $it" }  // See which tuples were kept
+            .debug(label: 'AFTER MAP (low-count filtered)') // 👀 Only barcode/target combos with low-counts
             .filter { it != null }
-            .view { "After filter nulls: $it" }  // See non-null tuples
+            .debug(label: 'AFTER FILTER (non-null)') // 👀 Confirm filtering worked
             .groupTuple ( by: [0] ) // Group by barcode
-            .view { "After groupTuple by barcode: $it" }  // See grouped tuples
+            .debug(label: 'AFTER GROUP (by barcode)') // 👀 Grouped by barcode
             .map { barcode, values -> 
                 def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
-                tuple(barcode, target_counts) // Single unpackable value
+                tuple(barcode, target_counts)
                 }
-            .view { "Final result (barcode + target_counts): $it" }  // Final structure
+            .debug(label: 'FINAL RESULT (barcode -> {target: low_count})') // 👀 Final structure
             .set { low_clusters_counts }
+
 
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
