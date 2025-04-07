@@ -125,13 +125,18 @@ workflow OFFLINE_UMI_PROCESSING {
                                       .sum { fasta -> fasta.countFasta() } ?: 0
                 total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
+            .view { "After map (filter low count clusters): $it" }  // See which tuples were kept
             .filter { it != null }
+            .view { "After filter nulls: $it" }  // See non-null tuples
             .groupTuple ( by: [0] ) // Group by barcode
+            .view { "After groupTuple by barcode: $it" }  // See grouped tuples
             .map { barcode, values -> 
                 def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
                 tuple(barcode, target_counts) // Single unpackable value
                 }
+            .view { "Final result (barcode + target_counts): $it" }  // Final structure
             .set { low_clusters_counts }
+
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 
