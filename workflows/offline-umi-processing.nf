@@ -120,22 +120,22 @@ workflow OFFLINE_UMI_PROCESSING {
             .set{ cluster_fastas }
 
         CLUSTER.out.cluster_fastas
-            .debug(label: 'RAW INPUT') // 👀 Show initial input: (barcode, target, clusters)
+            .dump(pretty: true) // 👀 Show initial input: (barcode, target, clusters)
             .map { barcode, target, clusters ->
                 def total_low_count = clusters.findAll { it.countFasta() < params.min_reads_per_cluster }
                                     .sum { it.countFasta() } ?: 0
             total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
-            .debug(label: 'AFTER MAP (low-count filtered)') // 👀 Only barcode/target combos with low-counts
+            .dump(pretty: true) // 👀 Only barcode/target combos with low-counts
             .filter { it != null }
-            .debug(label: 'AFTER FILTER (non-null)') // 👀 Confirm filtering worked
+            .dump(pretty: true) // 👀 Confirm filtering worked
             .groupTuple ( by: [0] ) // Group by barcode
-            .debug(label: 'AFTER GROUP (by barcode)') // 👀 Grouped by barcode
+            .dump(pretty: true) // 👀 Grouped by barcode
             .map { barcode, values -> 
                 def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
                 tuple(barcode, target_counts)
                 }
-            .debug(label: 'FINAL RESULT (barcode -> {target: low_count})') // 👀 Final structure
+            .dump(pretty: true) // 👀 Final structure
             .set { low_clusters_counts }
 
 
