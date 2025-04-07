@@ -123,13 +123,13 @@ workflow OFFLINE_UMI_PROCESSING {
             .map { barcode, target, clusters -> 
                 def total_low_count = clusters.findAll { fasta -> fasta.countFasta() < params.min_reads_per_cluster }
                                       .sum { fasta -> fasta.countFasta() } ?: 0
-                total_low_count > 0 ? [barcode, target, total_low_count] : null
+                total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
             .filter { it != null }
             .groupTuple ( by: [0] ) // Group by barcode
             .map { barcode, values -> 
                 def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
-                tuple( barcode, target_counts ) // Single unpackable value
+                tuple(barcode, target_counts) // Single unpackable value
                 }
             .set { low_clusters_counts }
 
