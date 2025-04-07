@@ -120,7 +120,6 @@ workflow OFFLINE_UMI_PROCESSING {
             .set{ cluster_fastas }
 
         CLUSTER.out.cluster_fastas
-            .dump(pretty: true) // 👀 Show initial input: (barcode, target, clusters)
             .map { barcode, target, clusters ->
                 def total_low_count = clusters.findAll { it.countFasta() < params.min_reads_per_cluster }
                                     .sum { it.countFasta() } ?: 0
