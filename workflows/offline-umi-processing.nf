@@ -125,16 +125,17 @@ workflow OFFLINE_UMI_PROCESSING {
                                     .sum { it.countFasta() } ?: 0
             total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
-            .dump(pretty: true) // 👀 Only barcode/target combos with low-counts
+            .dump(pretty: true, tag: 'combos') // Only barcode/target combos with low-counts
             .filter { it != null }
-            .dump(pretty: true) // 👀 Confirm filtering worked
+            .dump(pretty: true, tag: 'after-filter') // Confirm filtering worked
             .groupTuple ( by: [0] ) // Group by barcode
-            .dump(pretty: true) // 👀 Grouped by barcode
+            .dump(pretty: true, tag: 'groupped') // Grouped by barcode
             .map { barcode, values -> 
-                def target_counts = values.collectEntries { [it[1], it[2]] } // {target: count}
-                tuple(barcode, target_counts)
+                def targets = values.collect { it[1] }
+                def counts = values.collect { it[2] }
+                tuple(barcode, targets, counts)
                 }
-            .dump(pretty: true) // 👀 Final structure
+            .dump(pretty: true, tag: 'final') // Final structure
             .set { low_clusters_counts }
 
 
