@@ -130,12 +130,12 @@ workflow OFFLINE_UMI_PROCESSING {
             .dump(pretty: true, tag: 'after-filter') // Confirm filtering worked
             .groupTuple ( by: [0] ) // Group by barcode
             .dump(pretty: true, tag: 'groupped') // Grouped by barcode
-            .map { barcode, values -> 
-                def targets = values.collect { it[1] }
-                def counts = values.collect { it[2] }
-                tuple(barcode, targets, counts)
-                }
-            .dump(pretty: true, tag: 'final') // Final structure
+            //.map { barcode, values -> 
+            //    def targets = values.collect { it[1] }
+            //    def counts = values.collect { it[2] }
+            //    tuple(barcode, targets, counts)
+            //    }
+            //.dump(pretty: true, tag: 'final') // Final structure
             .set { low_clusters_counts }
 
 
