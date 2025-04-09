@@ -27,7 +27,7 @@ def parse_args(argv):
         "-l", "--low_clusters", dest="LOW_CL", required=True, nargs="+", help="Counts for low clusters"
     )
     parser.add_argument(
-        "-h", "--hs_index", dest="HS_IDX", required=True, nargs="+", help="HS index for counts of low clusters"
+        "-x", "--hs_index", dest="HS_IDX", required=True, nargs="+", help="HS index for counts of low clusters"
     )
 
     args = parser.parse_args(argv)
