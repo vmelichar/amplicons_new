@@ -10,6 +10,6 @@ process EXPORT_FILTER_STATS {
         tuple val( "${sample}" ), path ( "*.csv" )
 
     """
-        python ${export_stats} -i "${workflow.launchDir}/${params.output}" -l ${low_clusters_count} -h ${hs_index}
+        python ${export_stats} -i "${workflow.launchDir}/${params.output}" -l ${low_clusters_counts} -h ${hs_index}
     """
 }
