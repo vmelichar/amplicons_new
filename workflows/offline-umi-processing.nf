@@ -30,7 +30,7 @@ workflow OFFLINE_UMI_PROCESSING {
 
     main:       
         Channel
-            .fromPath("${params.input}/barcode*/*.fastq")
+            .fromPath("${params.input}/barcode*/*.fastq*")
             .map{ 
                 fastqs -> 
                 def barcode = fastqs.parent.name
