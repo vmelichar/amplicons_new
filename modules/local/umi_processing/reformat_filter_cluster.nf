@@ -32,6 +32,6 @@ process REFORMAT_FILTER_CLUSTER {
           $write_report \
           -o .
 
-        tar -czf UMI_smolecules.tar.gz UMI_smolecule*
+        tar -czf UMI_smolecules.tar.gz UMI_smolecule* || true
     """
 }
