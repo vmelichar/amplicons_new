@@ -40,7 +40,7 @@ def parse_args(argv):
 def get_basic_stats_to_dict(barcode, input):
 
         file = f'{input}/barcode01/HS{barcode}/stats/raw/filtering_stats.tsv'
-
+    
     if os.path.exists(file):
         with open(file) as f:
             lines = f.readlines()
