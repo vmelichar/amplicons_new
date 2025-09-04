@@ -405,7 +405,7 @@ def get_cluster_stats_to_list(hs, input, func=['med','mean']):
 
         return df_tot + df_0_list + df_1_list
     else:
-        return []
+        return [0,0,0,0,0,0,0,0, 0,0,0, 0,0,0]
 
 
 def get_csv_cluster(input):
