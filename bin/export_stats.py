@@ -451,25 +451,39 @@ def get_sankey_values(hs,input,low_clusters,hs_index):
 
     file_detection = f'{input}/barcode01/HS{hs}/stats/raw/detected_umi_stats.tsv'
 
-    with open(file_detection, 'r') as f:
-        line = f.readlines()[1]
+    if os.path.exists(file_detection):
+        with open(file_detection, 'r') as f:
+            line = f.readlines()[1]
 
-    det_umi = int(line.split('\t')[6].strip())
+        det_umi = int(line.split('\t')[6].strip())
 
-    undetected_umi = int(filter_values['reads_filtered']) - det_umi
+        undetected_umi = int(filter_values['reads_filtered']) - det_umi
+    else:
+        det_umi = 0
+
+        undetected_umi = int(filter_values['reads_filtered']) - 0
 
     file_clustering = f'{input}/barcode01/HS{hs}/stats/raw/split_cluster_stats.tsv'
-    df = pd.read_csv(file_clustering, sep='\t', header=0)
+    
+    if os.path.exists(file_clustering):
+        df = pd.read_csv(file_clustering, sep='\t', header=0)
 
-    cl_0 = int(df[df['cluster_written'] == 0]['reads_found'].sum())
-    cl_1 = int(df[df['cluster_written'] == 1]['reads_found'].sum())
+        cl_0 = int(df[df['cluster_written'] == 0]['reads_found'].sum())
+        cl_1 = int(df[df['cluster_written'] == 1]['reads_found'].sum())
 
-    hs_idx = hs_index.index(f'HS{hs}')
-    low_cluster_count = int(low_clusters[hs_idx])
+        hs_idx = hs_index.index(f'HS{hs}')
+        low_cluster_count = int(low_clusters[hs_idx])
 
-    singletons = det_umi - low_cluster_count - cl_0 - cl_1
+        singletons = det_umi - low_cluster_count - cl_0 - cl_1
 
-    recombo = df[df['cluster_id'].isin(get_recombo_clusters_names(hs,input))]['reads_found'].sum()
+        recombo = df[df['cluster_id'].isin(get_recombo_clusters_names(hs,input))]['reads_found'].sum()
+    else:
+        cl_0 = 0
+        cl_1 = 0
+        hs_idx = hs_index.index(f'HS{hs}')
+        low_cluster_count = int(low_clusters[hs_idx])
+        singletons = det_umi - low_cluster_count - cl_0 - cl_1
+        recombo = df[df['cluster_id'].isin(get_recombo_clusters_names(hs,input))]['reads_found'].sum()
 
     return [
             filter_values['reads_unmapped'], 
@@ -506,10 +520,13 @@ def get_sankey_all(input,low_clusters,hs_index):
 
 def get_recombo_clusters_names(hs, input):
     file = f'{input}/barcode01/HS{hs}/analysis/analysis_HS{hs}_perc_counts.csv'
-    df = pd.read_csv(file)
-    names = [i.split('=')[1].replace('_', '_sub') for i in list(df['read'])]
+    if os.path.exists(file):
+        df = pd.read_csv(file)
+        names = [i.split('=')[1].replace('_', '_sub') for i in list(df['read'])]
 
-    return names
+        return names
+    else:
+        return []
 
 
 def check_strands(df):
