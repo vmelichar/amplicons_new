@@ -483,7 +483,7 @@ def get_sankey_values(hs,input,low_clusters,hs_index):
         hs_idx = hs_index.index(f'HS{hs}')
         low_cluster_count = int(low_clusters[hs_idx])
         singletons = det_umi - low_cluster_count - cl_0 - cl_1
-        recombo = df[df['cluster_id'].isin(get_recombo_clusters_names(hs,input))]['reads_found'].sum()
+        recombo = 0
 
     return [
             filter_values['reads_unmapped'], 
