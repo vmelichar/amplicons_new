@@ -480,8 +480,11 @@ def get_sankey_values(hs,input,low_clusters,hs_index):
     else:
         cl_0 = 0
         cl_1 = 0
-        hs_idx = hs_index.index(f'HS{hs}')
-        low_cluster_count = int(low_clusters[hs_idx])
+        if f'HS{hs}' not in hs_index:
+            low_cluster_count = 0
+        else:
+            hs_idx = hs_index.index(f'HS{hs}')
+            low_cluster_count = int(low_clusters[hs_idx])
         singletons = det_umi - low_cluster_count - cl_0 - cl_1
         recombo = 0
 
