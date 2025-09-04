@@ -228,7 +228,7 @@ def get_extraction_stats_to_list(hs, mode, extraction, input, func=['med','mean'
 
         return fwd_plus + rev_plus + fwd_minus + rev_minus
     else:
-        return []
+        return [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
 
 
 def get_csv_extraction(input):
