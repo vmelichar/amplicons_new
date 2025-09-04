@@ -5,6 +5,7 @@ Merge filtering tsv file from different chunks
 import pandas as pd
 import argparse
 import sys
+import os
 
 
 def parse_args(argv):
@@ -37,27 +38,39 @@ def parse_args(argv):
 # BASIC STATS
 
 def get_basic_stats_to_dict(barcode, input):
-    
-    file = f'{input}/barcode01/HS{barcode}/stats/raw/filtering_stats.tsv'
 
-    with open(file) as f:
-        lines = f.readlines()
+        file = f'{input}/barcode01/HS{barcode}/stats/raw/filtering_stats.tsv'
 
-    count_line = lines[1]
+    if os.path.exists(file):
+        with open(file) as f:
+            lines = f.readlines()
 
-    counts = count_line.split('\t')
+        count_line = lines[1]
 
-    dict = {    'reads_found': counts[2],
-                'reads_unmapped': counts[3],
-                'reads_secondary': counts[4],
-                'reads_supplementary': counts[5],
-                'reads_on_target': counts[6],
-                'reads_concatamer': counts[7],
-                'reads_short': counts[8],
-                'reads_long': counts[9],
-                'reads_filtered': counts[10]}
-    return dict
+        counts = count_line.split('\t')
 
+        dict = {    'reads_found': counts[2],
+                    'reads_unmapped': counts[3],
+                    'reads_secondary': counts[4],
+                    'reads_supplementary': counts[5],
+                    'reads_on_target': counts[6],
+                    'reads_concatamer': counts[7],
+                    'reads_short': counts[8],
+                    'reads_long': counts[9],
+                    'reads_filtered': counts[10]}
+        return dict
+
+    else:
+        dict = {    'reads_found': 0,
+                    'reads_unmapped': 0,
+                    'reads_secondary': 0,
+                    'reads_supplementary': 0,
+                    'reads_on_target': 0,
+                    'reads_concatamer': 0,
+                    'reads_short': 0,
+                    'reads_long': 0,
+                    'reads_filtered': 0}
+        return dict
 
 def get_basic_stats_to_dict_perc(dict, part=False):
     output_dict = {}
@@ -81,36 +94,49 @@ def get_basic_strand_stats_to_dict(barcode, strand, input):
     
     file = f'{input}/barcode01/HS{barcode}/stats/raw/strand_filter.txt'
 
-    with open(file) as f:
-        lines = f.readlines()
+    if os.path.exists(file):
+        with open(file) as f:
+            lines = f.readlines()
 
-    lines = [int(i) for i in lines]
+        lines = [int(i) for i in lines]
+        
+        if strand == '+':
+            counts = lines[0::2]
+            target = sum(counts)
+            dict = {    'reads_found': '-',
+                        'reads_unmapped': '-',
+                        'reads_secondary': '-',
+                        'reads_supplementary': '-',
+                        'reads_on_target': target,
+                        'reads_concatamer': counts[0],
+                        'reads_short': counts[1],
+                        'reads_long': counts[2],
+                        'reads_filtered': counts[3]}
+            return dict
+        if strand == '-':
+            counts = lines[1::2]
+            target = sum(counts)
+            dict = {    'reads_found': '-',
+                        'reads_unmapped': '-',
+                        'reads_secondary': '-',
+                        'reads_supplementary': '-',
+                        'reads_on_target': target,
+                        'reads_concatamer': counts[0],
+                        'reads_short': counts[1],
+                        'reads_long': counts[2],
+                        'reads_filtered': counts[3]}
+            return dict
     
-    if strand == '+':
-        counts = lines[0::2]
-        target = sum(counts)
+    else:
         dict = {    'reads_found': '-',
                     'reads_unmapped': '-',
                     'reads_secondary': '-',
                     'reads_supplementary': '-',
-                    'reads_on_target': target,
-                    'reads_concatamer': counts[0],
-                    'reads_short': counts[1],
-                    'reads_long': counts[2],
-                    'reads_filtered': counts[3]}
-        return dict
-    if strand == '-':
-        counts = lines[1::2]
-        target = sum(counts)
-        dict = {    'reads_found': '-',
-                    'reads_unmapped': '-',
-                    'reads_secondary': '-',
-                    'reads_supplementary': '-',
-                    'reads_on_target': target,
-                    'reads_concatamer': counts[0],
-                    'reads_short': counts[1],
-                    'reads_long': counts[2],
-                    'reads_filtered': counts[3]}
+                    'reads_on_target': 0,
+                    'reads_concatamer': 0,
+                    'reads_short': 0,
+                    'reads_long': 0,
+                    'reads_filtered': 0}
         return dict
 
 
@@ -119,24 +145,31 @@ def get_detected_umis_stats(barcode, df, input):
     file = f'{input}/barcode01/HS{barcode}/stats/raw/detected_umi_stats.tsv'
     file_strands = f'{input}/barcode01/HS{barcode}/stats/raw/umi_strand_filter.txt'
 
-    with open(file, 'r') as f:
-        line = f.readlines()[1]
+    if os.path.exists(file) and os.path.exists(file_strands):
+        with open(file, 'r') as f:
+            line = f.readlines()[1]
 
-    reads_used = int(line.split('\t')[6].strip())
-    reads_used_perc_part = f'{round(float(line.split('\t')[7].strip()), 1)}%'
-    reads_used_perc_tot = f"{round(reads_used / int(df.at['reads_found', f'{hs}_count']) * 100, 1)}%"
+        reads_used = int(line.split('\t')[6].strip())
+        reads_used_perc_part = f'{round(float(line.split('\t')[7].strip()), 1)}%'
+        reads_used_perc_tot = f"{round(reads_used / int(df.at['reads_found', f'{hs}_count']) * 100, 1)}%"
 
-    with open(file_strands, 'r') as f:
-        lines = f.readlines()
+        with open(file_strands, 'r') as f:
+            lines = f.readlines()
 
-    plus = int(lines[0])
-    minus = int(lines[1])
+        plus = int(lines[0])
+        minus = int(lines[1])
 
-    return {f'hs{barcode}_count': reads_used, 
-            f'hs{barcode}_percPart': reads_used_perc_part, 
-            f'hs{barcode}_percTot': reads_used_perc_tot,
-            f'hs{barcode}_plus': plus, 
-            f'hs{barcode}_minus': minus}
+        return {f'hs{barcode}_count': reads_used, 
+                f'hs{barcode}_percPart': reads_used_perc_part, 
+                f'hs{barcode}_percTot': reads_used_perc_tot,
+                f'hs{barcode}_plus': plus, 
+                f'hs{barcode}_minus': minus}
+    else:
+        return {f'hs{barcode}_count': 0, 
+                f'hs{barcode}_percPart': 0, 
+                f'hs{barcode}_percTot': 0,
+                f'hs{barcode}_plus': 0, 
+                f'hs{barcode}_minus': 0}
 
 
 def get_csv_stats(input):
@@ -173,26 +206,29 @@ def get_csv_stats(input):
 def get_extraction_stats_to_list(hs, mode, extraction, input, func=['med','mean']):
     file = f'{input}/barcode01/HS{hs[2]}/stats/{mode}/extraction_{extraction}_stats.tsv'
 
-    df = pd.read_csv(file, sep='\t', skiprows=1, header=None)
-    df.columns = ['patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
+    if os.path.exists(file):
+        df = pd.read_csv(file, sep='\t', skiprows=1, header=None)
+        df.columns = ['patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
 
-    fwd_plus = df[(df['strand'] == '+') & (df['orient'] == 'fwd') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
-    rev_plus = df[(df['strand'] == '+') & (df['orient'] == 'rev') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
-    fwd_minus = df[(df['strand'] == '-') & (df['orient'] == 'fwd') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
-    rev_minus = df[(df['strand'] == '-') & (df['orient'] == 'rev') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
+        fwd_plus = df[(df['strand'] == '+') & (df['orient'] == 'fwd') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
+        rev_plus = df[(df['strand'] == '+') & (df['orient'] == 'rev') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
+        fwd_minus = df[(df['strand'] == '-') & (df['orient'] == 'fwd') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
+        rev_minus = df[(df['strand'] == '-') & (df['orient'] == 'rev') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
 
-    if func == 'med':
-        fwd_plus = [int(i) if pd.notna(i) else 0 for i in fwd_plus.median().tolist()]
-        rev_plus = [int(i) if pd.notna(i) else 0 for i in rev_plus.median().tolist()]
-        fwd_minus = [int(i) if pd.notna(i) else 0 for i in fwd_minus.median().tolist()]
-        rev_minus = [int(i) if pd.notna(i) else 0 for i in rev_minus.median().tolist()]
-    elif func == 'mean':
-        fwd_plus = [round(i,2) for i in fwd_plus.mean().tolist()]
-        rev_plus = [round(i,2) for i in rev_plus.mean().tolist()]
-        fwd_minus = [round(i,2) for i in fwd_minus.mean().tolist()]
-        rev_minus = [round(i,2) for i in rev_minus.mean().tolist()]
+        if func == 'med':
+            fwd_plus = [int(i) if pd.notna(i) else 0 for i in fwd_plus.median().tolist()]
+            rev_plus = [int(i) if pd.notna(i) else 0 for i in rev_plus.median().tolist()]
+            fwd_minus = [int(i) if pd.notna(i) else 0 for i in fwd_minus.median().tolist()]
+            rev_minus = [int(i) if pd.notna(i) else 0 for i in rev_minus.median().tolist()]
+        elif func == 'mean':
+            fwd_plus = [round(i,2) for i in fwd_plus.mean().tolist()]
+            rev_plus = [round(i,2) for i in rev_plus.mean().tolist()]
+            fwd_minus = [round(i,2) for i in fwd_minus.mean().tolist()]
+            rev_minus = [round(i,2) for i in rev_minus.mean().tolist()]
 
-    return fwd_plus + rev_plus + fwd_minus + rev_minus
+        return fwd_plus + rev_plus + fwd_minus + rev_minus
+    else:
+        return []
 
 
 def get_csv_extraction(input):
@@ -253,28 +289,31 @@ def get_csv_extraction(input):
 def get_extraction_basics_to_list(hs, mode, extraction, val, input):
     file = f'{input}/barcode01/HS{hs[2]}/stats/{mode}/extraction_{extraction}_stats.tsv'
 
-    df = pd.read_csv(file, sep='\t', skiprows=1, header=None)
-    df.columns = ['patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
+    if os.path.exists(file):
+        df = pd.read_csv(file, sep='\t', skiprows=1, header=None)
+        df.columns = ['patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
 
-    total = len(df)
-    total_perc = count_perc_string(total, total)
-    
-    if extraction == 'synthetic':
-        no_match = len(df[df.ed == -1])
-        no_match_perc = count_perc_string(no_match, total)
-        extracted = len(df[df.ed > -1])
-        extracted_perc = count_perc_string(extracted, total)
+        total = len(df)
+        total_perc = count_perc_string(total, total)
+        
+        if extraction == 'synthetic':
+            no_match = len(df[df.ed == -1])
+            no_match_perc = count_perc_string(no_match, total)
+            extracted = len(df[df.ed > -1])
+            extracted_perc = count_perc_string(extracted, total)
 
-    if extraction == 'umi':
-        no_match = len(df[df.seq_umi.isnull()])
-        no_match_perc = count_perc_string(no_match, total)
-        extracted = len(df[(df.ed > -1) & (df.seq_umi.notnull())])
-        extracted_perc = count_perc_string(extracted, total)
-    
-    if val == 'count':
-        return [total, no_match, extracted]
-    if val == 'perc':
-        return [total_perc, no_match_perc, extracted_perc]
+        if extraction == 'umi':
+            no_match = len(df[df.seq_umi.isnull()])
+            no_match_perc = count_perc_string(no_match, total)
+            extracted = len(df[(df.ed > -1) & (df.seq_umi.notnull())])
+            extracted_perc = count_perc_string(extracted, total)
+        
+        if val == 'count':
+            return [total, no_match, extracted]
+        if val == 'perc':
+            return [total_perc, no_match_perc, extracted_perc]
+    else:
+        return [0,0,0]
 
 
 def get_csv_extraction_basics(input):
@@ -328,42 +367,45 @@ def get_csv_extraction_basics(input):
 def get_cluster_stats_to_list(hs, input, func=['med','mean']):
     file = f'{input}/barcode01/HS{hs[2]}/stats/raw/split_cluster_stats.tsv'
 
-    df = pd.read_csv(file, sep='\t', header=0)
+    if os.path.exists(file):
+        df = pd.read_csv(file, sep='\t', header=0)
 
-    df_0 = df[df['cluster_written'] == 0][['reads_found', 'reads_found_fwd', 'reads_found_rev']]
-    df_1 = df[df['cluster_written'] == 1][['reads_found', 'reads_found_fwd', 'reads_found_rev']]
-    df_tot = df[['reads_found', 'reads_found_fwd', 'reads_found_rev']]
+        df_0 = df[df['cluster_written'] == 0][['reads_found', 'reads_found_fwd', 'reads_found_rev']]
+        df_1 = df[df['cluster_written'] == 1][['reads_found', 'reads_found_fwd', 'reads_found_rev']]
+        df_tot = df[['reads_found', 'reads_found_fwd', 'reads_found_rev']]
 
-    if func == 'med':
-        df_0_list = df_0.median().tolist()
-        df_1_list = df_1.median().tolist()
-        df_0_list = [int(i) if pd.notna(i) else 0 for i in df_0_list]
-        df_1_list = [int(i) if pd.notna(i) else 0 for i in df_1_list]
-    elif func == 'mean':
-        df_0_list = df_0.mean().tolist()
-        df_1_list = df_1.mean().tolist()
-        df_0_list = [round(i,2) for i in df_0_list]
-        df_1_list = [round(i,2) for i in df_1_list]
+        if func == 'med':
+            df_0_list = df_0.median().tolist()
+            df_1_list = df_1.median().tolist()
+            df_0_list = [int(i) if pd.notna(i) else 0 for i in df_0_list]
+            df_1_list = [int(i) if pd.notna(i) else 0 for i in df_1_list]
+        elif func == 'mean':
+            df_0_list = df_0.mean().tolist()
+            df_1_list = df_1.mean().tolist()
+            df_0_list = [round(i,2) for i in df_0_list]
+            df_1_list = [round(i,2) for i in df_1_list]
 
-    file_det = f'{input}/barcode01/HS{hs[2]}/stats/raw/detected_umi_stats.tsv'
+        file_det = f'{input}/barcode01/HS{hs[2]}/stats/raw/detected_umi_stats.tsv'
 
-    with open(file_det, 'r') as f_det:
-        line_det = f_det.readlines()[1]
+        with open(file_det, 'r') as f_det:
+            line_det = f_det.readlines()[1]
 
-    sum_0_cl = len(df_0)
-    sum_1_cl = len(df_1)
-    sum_tot_cl = len(df_tot)
-    perc_1_cl = count_perc_string(sum_1_cl, sum_tot_cl)
-    sum_tot_rd = df_tot['reads_found'].sum()
-    sum_1_rd = df_1['reads_found'].sum()
-    rd_per_cl = round(sum_tot_rd / sum_tot_cl, 1)
-    rd_det = int(line_det.split('\t')[6].strip())
-    perc_det = count_perc_string(sum_tot_rd, rd_det)
-    perc_used = count_perc_string(sum_1_rd, rd_det)
+        sum_0_cl = len(df_0)
+        sum_1_cl = len(df_1)
+        sum_tot_cl = len(df_tot)
+        perc_1_cl = count_perc_string(sum_1_cl, sum_tot_cl)
+        sum_tot_rd = df_tot['reads_found'].sum()
+        sum_1_rd = df_1['reads_found'].sum()
+        rd_per_cl = round(sum_tot_rd / sum_tot_cl, 1)
+        rd_det = int(line_det.split('\t')[6].strip())
+        perc_det = count_perc_string(sum_tot_rd, rd_det)
+        perc_used = count_perc_string(sum_1_rd, rd_det)
 
-    df_tot = [sum_tot_cl, sum_0_cl, sum_1_cl, perc_1_cl, sum_tot_rd, rd_per_cl, perc_det, perc_used]
+        df_tot = [sum_tot_cl, sum_0_cl, sum_1_cl, perc_1_cl, sum_tot_rd, rd_per_cl, perc_det, perc_used]
 
-    return df_tot + df_0_list + df_1_list
+        return df_tot + df_0_list + df_1_list
+    else:
+        return []
 
 
 def get_csv_cluster(input):
