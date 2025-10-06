@@ -71,32 +71,28 @@ workflow OFFLINE_UMI_PROCESSING {
         .filter{ _sample, _target, fastq -> fastq.countFastq() > params.min_reads_per_barcode }
         .set{ split_reads_filtered }
 
-        DETECT_UMI_FASTQ( split_reads_filtered, raw, umi_extract )
-        
-        DETECT_UMI_FASTQ.out.umi_extract_fastq
-        .groupTuple( by: [0, 1])
-        .set{ extracted_umis }
-
         all_keys = SPLIT_READS.out.split_reads_fastx
             .map { sample, target, fastq -> tuple(sample, target) }
             .unique()
             .set { all_keys }
 
-        SPLIT_READS.out.split_reads_fastx_conca
-        .groupTuple( by: [0, 1])
-        .set{ strand_conca }
+        DETECT_UMI_FASTQ( split_reads_filtered, raw, umi_extract )
         
-        SPLIT_READS.out.split_reads_fastx_short
-        .groupTuple( by: [0, 1])
-        .set{ strand_short }
-        
-        SPLIT_READS.out.split_reads_fastx_long
-        .groupTuple( by: [0, 1])
-        .set{ strand_long }
+        // Each SPLIT_READS output may or may not exist
+        strand_conca  = SPLIT_READS.out.split_reads_fastx_conca
+                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
-        SPLIT_READS.out.split_reads_fastx
-        .groupTuple( by: [0, 1])
-        .set{ strand_filter }
+        strand_short  = SPLIT_READS.out.split_reads_fastx_short
+                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+
+        strand_long   = SPLIT_READS.out.split_reads_fastx_long
+                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+
+        strand_filter = SPLIT_READS.out.split_reads_fastx
+                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+
+        extracted_umis = DETECT_UMI_FASTQ.out.umi_extract_fastq
+                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
         strand_conca_filled  = all_keys.combine(strand_conca,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
         strand_short_filled  = all_keys.combine(strand_short,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
