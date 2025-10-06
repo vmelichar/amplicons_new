@@ -79,18 +79,22 @@ workflow OFFLINE_UMI_PROCESSING {
 
         SPLIT_READS.out.split_reads_fastx_conca
         .groupTuple( by: [0, 1])
+        .ifEmpty { Channel.value([]) }
         .set{ strand_conca }
         
         SPLIT_READS.out.split_reads_fastx_short
         .groupTuple( by: [0, 1])
+        .ifEmpty { Channel.value([]) }
         .set{ strand_short }
         
         SPLIT_READS.out.split_reads_fastx_long
         .groupTuple( by: [0, 1])
+        .ifEmpty { Channel.value([]) }
         .set{ strand_long }
 
         SPLIT_READS.out.split_reads_fastx
         .groupTuple( by: [0, 1])
+        .ifEmpty { Channel.value([]) }
         .set{ strand_filter }
 
         extracted_umis

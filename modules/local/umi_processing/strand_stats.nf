@@ -10,19 +10,27 @@ process STRAND_STATS {
 
     script:
     """
-        grep strand=+ ${strand_conca.join(' ')} | wc -l >> strand_filter.txt
-        grep strand=- ${strand_conca.join(' ')} | wc -l >> strand_filter.txt
+        # helper function to safely count strands
+        count_strands() {
+            files=\$1
+            if [ -z "\$files" ]; then
+                echo 0
+                echo 0
+            else
+                grep -h 'strand=+' \$files | wc -l
+                grep -h 'strand=-' \$files | wc -l
+            fi
+        }
 
-        grep strand=+ ${strand_short.join(' ')} | wc -l >> strand_filter.txt
-        grep strand=- ${strand_short.join(' ')} | wc -l >> strand_filter.txt
+        {
+            count_strands "${strand_conca.join(' ')}"
+            count_strands "${strand_short.join(' ')}"
+            count_strands "${strand_long.join(' ')}"
+            count_strands "${strand_filter.join(' ')}"
+        } > strand_filter.txt
 
-        grep strand=+ ${strand_long.join(' ')} | wc -l >> strand_filter.txt
-        grep strand=- ${strand_long.join(' ')} | wc -l >> strand_filter.txt
-
-        grep strand=+ ${strand_filter.join(' ')} | wc -l >> strand_filter.txt
-        grep strand=- ${strand_filter.join(' ')} | wc -l >> strand_filter.txt
-        
-        grep strand=+ ${strand_umi.join(' ')} | wc -l >> umi_strand_filter.txt
-        grep strand=- ${strand_umi.join(' ')} | wc -l >> umi_strand_filter.txt
+        {
+            count_strands "${strand_umi.join(' ')}"
+        } > umi_strand_filter.txt
     """
 }
