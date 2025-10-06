@@ -94,14 +94,11 @@ workflow OFFLINE_UMI_PROCESSING {
         extracted_umis = DETECT_UMI_FASTQ.out.umi_extract_fastq
                   ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
-        println "DEBUG all_keys: ${all_keys}"
-        println "DEBUG strand_conca: ${strand_conca}"
-
-        strand_conca_filled  = all_keys.combine(strand_conca,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        strand_short_filled  = all_keys.combine(strand_short,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        strand_long_filled   = all_keys.combine(strand_long,   by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        strand_filter_filled = all_keys.combine(strand_filter, by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        extracted_umis_filled= all_keys.combine(extracted_umis,by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        //nca_filled  = all_keys.combine(strand_conca,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        //rand_short_filled  = all_keys.combine(strand_short,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        //rand_long_filled   = all_keys.combine(strand_long,   by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        //rand_filter_filled = all_keys.combine(strand_filter, by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        //tracted_umis_filled= all_keys.combine(extracted_umis,by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
 
         channel_to_strand = all_keys
             .combine(extracted_umis_filled,  by: [0,1])
