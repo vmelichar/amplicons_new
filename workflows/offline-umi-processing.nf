@@ -92,6 +92,8 @@ workflow OFFLINE_UMI_PROCESSING {
         .ifEmpty { Channel.value([]) }
         .set{ strand_long }
 
+        strand_long.dump(pretty: true, tag: 'long')
+
         SPLIT_READS.out.split_reads_fastx
         .groupTuple( by: [0, 1])
         .ifEmpty { Channel.value([]) }
