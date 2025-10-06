@@ -172,8 +172,8 @@ def get_detected_umis_stats(barcode, df, input):
             return {f'hs{barcode}_count': reads_used, 
                     f'hs{barcode}_percPart': reads_used_perc_part, 
                     f'hs{barcode}_percTot': reads_used_perc_tot,
-                    f'hs{barcode}_plus': '--',
-                    f'hs{barcode}_minus': '--'}
+                    f'hs{barcode}_plus': '0',
+                    f'hs{barcode}_minus': '0'}
     else:
         return {f'hs{barcode}_count': 0, 
                 f'hs{barcode}_percPart': 0, 
