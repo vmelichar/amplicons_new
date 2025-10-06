@@ -77,34 +77,39 @@ workflow OFFLINE_UMI_PROCESSING {
         .groupTuple( by: [0, 1])
         .set{ extracted_umis }
 
+        all_keys = SPLIT_READS.out.split_reads_fastx
+            .map { sample, target, fastq -> tuple(sample, target) }
+            .unique()
+            .set { all_keys }
+
         SPLIT_READS.out.split_reads_fastx_conca
         .groupTuple( by: [0, 1])
-        .ifEmpty { Channel.value([]) }
         .set{ strand_conca }
         
         SPLIT_READS.out.split_reads_fastx_short
         .groupTuple( by: [0, 1])
-        .ifEmpty { Channel.value([]) }
         .set{ strand_short }
         
         SPLIT_READS.out.split_reads_fastx_long
         .groupTuple( by: [0, 1])
-        .ifEmpty { Channel.value([]) }
         .set{ strand_long }
-
-        strand_long.dump(pretty: true, tag: 'long')
 
         SPLIT_READS.out.split_reads_fastx
         .groupTuple( by: [0, 1])
-        .ifEmpty { Channel.value([]) }
         .set{ strand_filter }
 
-        extracted_umis
-        .join(strand_conca, by: [0, 1])
-        .join(strand_short, by: [0, 1])
-        .join(strand_long, by: [0, 1])
-        .join(strand_filter, by: [0, 1])
-        .set { channel_to_strand }
+        strand_conca_filled  = all_keys.combine(strand_conca,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        strand_short_filled  = all_keys.combine(strand_short,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        strand_long_filled   = all_keys.combine(strand_long,   by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        strand_filter_filled = all_keys.combine(strand_filter, by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+        extracted_umis_filled= all_keys.combine(extracted_umis,by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
+
+        channel_to_strand = all_keys
+            .combine(extracted_umis_filled,  by: [0,1])
+            .combine(strand_conca_filled,    by: [0,1])
+            .combine(strand_short_filled,    by: [0,1])
+            .combine(strand_long_filled,     by: [0,1])
+            .combine(strand_filter_filled,   by: [0,1])
 
         channel_to_strand.dump(pretty: true, tag: 'strand')
 
