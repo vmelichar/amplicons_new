@@ -94,18 +94,12 @@ workflow OFFLINE_UMI_PROCESSING {
         extracted_umis = DETECT_UMI_FASTQ.out.umi_extract_fastq
                   ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
-        //nca_filled  = all_keys.combine(strand_conca,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        //rand_short_filled  = all_keys.combine(strand_short,  by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        //rand_long_filled   = all_keys.combine(strand_long,   by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        //rand_filter_filled = all_keys.combine(strand_filter, by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-        //tracted_umis_filled= all_keys.combine(extracted_umis,by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
-
-        channel_to_strand = all_keys
-            .combine(extracted_umis,  by: [0,1])
-            .combine(strand_conca,    by: [0,1])
-            .combine(strand_short,    by: [0,1])
-            .combine(strand_long,     by: [0,1])
-            .combine(strand_filter,   by: [0,1])
+        extracted_umis
+        .join(strand_conca, by: [0, 1])
+        .join(strand_short, by: [0, 1])
+        .join(strand_long, by: [0, 1])
+        .join(strand_filter, by: [0, 1])
+        .set { channel_to_strand }
 
         channel_to_strand.dump(pretty: true, tag: 'strand')
 
