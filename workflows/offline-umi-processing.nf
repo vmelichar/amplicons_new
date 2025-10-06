@@ -104,7 +104,7 @@ workflow OFFLINE_UMI_PROCESSING {
         .join(strand_filter, by: [0, 1])
         .set { channel_to_strand }
 
-        channel_to_strand.view()
+        channel_to_strand.dump()
 
         STRAND_STATS(channel_to_strand, raw)
 
