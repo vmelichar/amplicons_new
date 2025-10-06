@@ -145,25 +145,35 @@ def get_detected_umis_stats(barcode, df, input):
     file = f'{input}/barcode01/HS{barcode}/stats/raw/detected_umi_stats.tsv'
     file_strands = f'{input}/barcode01/HS{barcode}/stats/raw/umi_strand_filter.txt'
 
-    if os.path.exists(file) and os.path.exists(file_strands):
+    if os.path.exists(file):
+
         with open(file, 'r') as f:
             line = f.readlines()[1]
 
         reads_used = int(line.split('\t')[6].strip())
         reads_used_perc_part = f'{round(float(line.split('\t')[7].strip()), 1)}%'
         reads_used_perc_tot = f"{round(reads_used / int(df.at['reads_found', f'{hs}_count']) * 100, 1)}%"
+        
+        if os.path.exists(file_strands):
 
-        with open(file_strands, 'r') as f:
-            lines = f.readlines()
+            with open(file_strands, 'r') as f:
+                lines = f.readlines()
 
-        plus = int(lines[0])
-        minus = int(lines[1])
+            plus = int(lines[0])
+            minus = int(lines[1])
 
-        return {f'hs{barcode}_count': reads_used, 
-                f'hs{barcode}_percPart': reads_used_perc_part, 
-                f'hs{barcode}_percTot': reads_used_perc_tot,
-                f'hs{barcode}_plus': plus, 
-                f'hs{barcode}_minus': minus}
+            return {f'hs{barcode}_count': reads_used, 
+                    f'hs{barcode}_percPart': reads_used_perc_part, 
+                    f'hs{barcode}_percTot': reads_used_perc_tot,
+                    f'hs{barcode}_plus': plus, 
+                    f'hs{barcode}_minus': minus}
+        else:
+
+            return {f'hs{barcode}_count': reads_used, 
+                    f'hs{barcode}_percPart': reads_used_perc_part, 
+                    f'hs{barcode}_percTot': reads_used_perc_tot,
+                    f'hs{barcode}_plus': '--',
+                    f'hs{barcode}_minus': '--'}
     else:
         return {f'hs{barcode}_count': 0, 
                 f'hs{barcode}_percPart': 0, 
