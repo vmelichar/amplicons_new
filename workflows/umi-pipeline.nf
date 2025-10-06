@@ -62,8 +62,6 @@ workflow UMI_PIPELINE {
         PARSE_BED.out.bed_channel
             .set{ bed_ch }
 
-        bed_ch.view()
-
         if ( params.live ){        
             LIVE_UMI_PROCESSING(
                 raw,

@@ -104,6 +104,8 @@ workflow OFFLINE_UMI_PROCESSING {
         .join(strand_filter, by: [0, 1])
         .set { channel_to_strand }
 
+        channel_to_strand.view()
+
         STRAND_STATS(channel_to_strand, raw)
 
         DETECT_UMI_FASTQ.out.stats_tsv
