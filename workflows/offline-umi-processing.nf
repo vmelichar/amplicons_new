@@ -101,11 +101,11 @@ workflow OFFLINE_UMI_PROCESSING {
         //tracted_umis_filled= all_keys.combine(extracted_umis,by: [0,1]).map { s,t,c -> tuple(s,t, c ?: []) }
 
         channel_to_strand = all_keys
-            .combine(extracted_umis_filled,  by: [0,1])
-            .combine(strand_conca_filled,    by: [0,1])
-            .combine(strand_short_filled,    by: [0,1])
-            .combine(strand_long_filled,     by: [0,1])
-            .combine(strand_filter_filled,   by: [0,1])
+            .combine(extracted_umis,  by: [0,1])
+            .combine(strand_conca,    by: [0,1])
+            .combine(strand_short,    by: [0,1])
+            .combine(strand_long,     by: [0,1])
+            .combine(strand_filter,   by: [0,1])
 
         channel_to_strand.dump(pretty: true, tag: 'strand')
 
