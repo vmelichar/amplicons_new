@@ -236,10 +236,11 @@ def filter_reads(args):
                 continue
 
             n_ontarget += 1
-            if read.query_alignment_length < (read.query_length - 2 * adapter_length):
-                n_concatamer += 1
-                write_read(read, output, f"{output_filename}_concatamer", out_format)
-                continue
+            # CONCATAMER FILTER REMOVED
+            # if read.query_alignment_length < (read.query_length - 2 * adapter_length):
+                # n_concatamer += 1
+                # write_read(read, output, f"{output_filename}_concatamer", out_format)
+                # continue
 
             if read.query_alignment_length < (region_length * min_overlap):
                 n_short += 1
