@@ -116,7 +116,8 @@ workflow OFFLINE_UMI_PROCESSING {
         // Filters the clusters to only keep cluser with more or equal than min_reads_per_cluster, but keeps the grouping per sample
         CLUSTER.out.cluster_fastas
             .map { barcode, target, clusters -> 
-                def filtered_clusters = clusters.findAll { fasta -> fasta.countFasta() >= params.min_reads_per_cluster }
+                def absoluteClusters = clusters.collect { it.toAbsolutePath() }
+                def filtered_clusters = absoluteClusters.findAll { fasta -> fasta.countFasta() >= params.min_reads_per_cluster }
                 filtered_clusters ? [barcode, target, filtered_clusters] : null
             }
             .filter { it != null }
@@ -124,7 +125,8 @@ workflow OFFLINE_UMI_PROCESSING {
 
         CLUSTER.out.cluster_fastas
             .map { barcode, target, clusters ->
-                def total_low_count = clusters.findAll { it.countFasta() < params.min_reads_per_cluster }
+                def absoluteClusters = clusters.collect { it.toAbsolutePath() }
+                def total_low_count = absoluteClusters.findAll { it.countFasta() < params.min_reads_per_cluster }
                                     .sum { it.countFasta() } ?: 0
             total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
