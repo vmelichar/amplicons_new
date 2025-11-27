@@ -56,7 +56,7 @@ workflow UMI_POLISHING {
         DETECT_UMI_CONSENSUS_FASTQ.out.umi_extract_fastq
             .map { barcode, target, fastq -> 
                 def absoluteFastq = fastq.collect { it.toAbsolutePath() }
-                def filtered_fastq = absoluteFastq.findAll { fastq -> fastq.countFastq() > 0 }
+                def filtered_fastq = absoluteFastq.findAll { fastq_file -> fastq_file.countFastq() > 0 }
                 filtered_fastq ? [barcode, target, filtered_fastq] : null
             }
             .filter { it != null }
