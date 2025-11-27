@@ -223,7 +223,7 @@ def get_sorted_reads(reads):
 
 def get_filter_parameters(n_fwd, n_rev, min_reads, max_reads, balance_strands):
     if balance_strands:
-        min_fwd = min_rev = min_reads // 2
+        min_fwd = min_rev = min_reads // 3
         max_reads = min(max(n_fwd, n_rev), max_reads)
         max_fwd = max_rev = max_reads
     else:
