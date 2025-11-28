@@ -79,9 +79,6 @@ workflow OFFLINE_UMI_PROCESSING {
         DETECT_UMI_FASTQ( split_reads_filtered, raw, umi_extract )
         
         // Each SPLIT_READS output may or may not exist
-        strand_conca  = SPLIT_READS.out.split_reads_fastx_conca
-                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
-
         strand_short  = SPLIT_READS.out.split_reads_fastx_short
                   ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
@@ -95,13 +92,10 @@ workflow OFFLINE_UMI_PROCESSING {
                   ?.groupTuple(by:[0,1]) ?: Channel.empty()
 
         extracted_umis
-        .join(strand_conca, by: [0, 1])
         .join(strand_short, by: [0, 1])
         .join(strand_long, by: [0, 1])
         .join(strand_filter, by: [0, 1])
         .set { channel_to_strand }
-
-        channel_to_strand.dump(pretty: true, tag: 'strand')
 
         STRAND_STATS(channel_to_strand, raw)
 
@@ -130,20 +124,9 @@ workflow OFFLINE_UMI_PROCESSING {
                                     .sum { it.countFasta() } ?: 0
             total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
             }
-            .dump(pretty: true, tag: 'combos') // Only barcode/target combos with low-counts
             .filter { it != null }
-            .dump(pretty: true, tag: 'after-filter') // Confirm filtering worked
             .groupTuple ( by: [0] ) // Group by barcode
-            .dump(pretty: true, tag: 'groupped') // Grouped by barcode
-            //.map { barcode, values -> 
-            //    def targets = values.collect { it[1] }
-            //    def counts = values.collect { it[2] }
-            //    tuple(barcode, targets, counts)
-            //    }
-            //.dump(pretty: true, tag: 'final') // Final structure
             .set { low_clusters_counts }
-
-
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 

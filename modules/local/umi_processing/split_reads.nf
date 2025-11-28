@@ -10,7 +10,6 @@ process SPLIT_READS {
     output:
         path "*", optional: true
         tuple val ( "${sample}" ), val( "${target}" ), path ( "*filtered.${params.output_format}" ), optional: true, emit: split_reads_fastx
-        tuple val ( "${sample}" ), val( "${target}" ), path ( "*concatamer.${params.output_format}" ), optional: true, emit: split_reads_fastx_conca
         tuple val ( "${sample}" ), val( "${target}" ), path ( "*short.${params.output_format}" ), optional: true, emit: split_reads_fastx_short
         tuple val ( "${sample}" ), val( "${target}" ), path ( "*long.${params.output_format}" ), optional: true, emit: split_reads_fastx_long
         tuple val ( "${sample}" ), val( "${target}" ), path ( "*_filter_stats.tsv" ), optional: true, emit: stats_tsv
