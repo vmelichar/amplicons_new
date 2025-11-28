@@ -1,5 +1,5 @@
 process DETECT_UMI_CONSENSUS_FASTQ {
-    // publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.tsv", mode: 'copy'
+    publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.tsv", mode: 'copy'
     publishDir "${params.output}/${sample}/${target}/${params.output_format}_umi/${type}", pattern: "*${params.output_format}", mode: 'copy'
 
     input:
@@ -28,5 +28,12 @@ process DETECT_UMI_CONSENSUS_FASTQ {
         $write_report \
         $cons \
         -o . ${fastq}
+
+        # Remove empty FASTQ files
+        if [ -f "${fastq.baseName}_detected_umis.${params.output_format}" ]; then
+            if [ ! -s "${fastq.baseName}_detected_umis.${params.output_format}" ]; then
+                rm "${fastq.baseName}_detected_umis.${params.output_format}"
+            fi
+        fi
     """
 }
