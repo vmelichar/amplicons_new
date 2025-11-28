@@ -2,6 +2,7 @@ def consensus_fasta="consensus.fasta"
 def vsearch_dir="vsearch_clusters"
 
 process CLUSTER {
+    tag "${target}"
     
     input:
         tuple val( sample ), val( target ), path( detected_umis_fastqs )

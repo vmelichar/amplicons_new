@@ -4,6 +4,7 @@ include {MAP_READS} from '../modules/local/umi_processing/map_reads.nf'
 include {SPLIT_READS} from  '../modules/local/umi_processing/split_reads.nf'
 include {DETECT_UMI_CONSENSUS_FASTQ as DETECT_UMI_FASTQ} from '../modules/local/umi_polishing/detect_umi_consensus_fastq.nf'
 include {CLUSTER} from '../modules/local/umi_processing/cluster.nf'
+include {FILTER_CLUSTERS_PARALLEL} from '../modules/local/umi_processing/cluster_filter.nf'
 include {REFORMAT_FILTER_CLUSTER} from '../modules/local/umi_processing/reformat_filter_cluster.nf'
 include {CLUSTER_STATS} from '../modules/local/umi_processing/cluster_stats.nf'
 include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cluster_stats.nf'
@@ -46,7 +47,8 @@ workflow OFFLINE_UMI_PROCESSING {
             .set { input_fastqs }
         } else {
             MERGE_FASTQ( existing_fastqs )
-            .set { input_fastqs }
+            MERGE_FASTQ.out.merged_fastq
+                .set { input_fastqs }
         }
 
         input_fastqs
@@ -70,11 +72,6 @@ workflow OFFLINE_UMI_PROCESSING {
         SPLIT_READS.out.split_reads_fastx
         .filter{ _sample, _target, fastq -> fastq.countFastq() > params.min_reads_per_barcode }
         .set{ split_reads_filtered }
-
-        all_keys = SPLIT_READS.out.split_reads_fastx
-            .map { sample, target, fastq -> tuple(sample, target) }
-            .unique()
-            .set { all_keys }
 
         DETECT_UMI_FASTQ( split_reads_filtered, raw, umi_extract )
         
@@ -107,26 +104,30 @@ workflow OFFLINE_UMI_PROCESSING {
 
         CLUSTER( extracted_umis, raw )
 
-        // Filters the clusters to only keep cluser with more or equal than min_reads_per_cluster, but keeps the grouping per sample
+        // Split large cluster sets into batches
         CLUSTER.out.cluster_fastas
-            .map { barcode, target, clusters -> 
-                def absoluteClusters = clusters.collect { it.toAbsolutePath() }
-                def filtered_clusters = absoluteClusters.findAll { fasta -> fasta.countFasta() >= params.min_reads_per_cluster }
-                filtered_clusters ? [barcode, target, filtered_clusters] : null
+            .flatMap { barcode, target, clusters ->
+                def batch_size = 1000 // files per batch
+                clusters.collate(batch_size).withIndex().collect { batch, idx ->
+                    tuple(barcode, target, idx, batch)
+                }
             }
-            .filter { it != null }
-            .set{ cluster_fastas }
-
-        CLUSTER.out.cluster_fastas
-            .map { barcode, target, clusters ->
-                def absoluteClusters = clusters.collect { it.toAbsolutePath() }
-                def total_low_count = absoluteClusters.findAll { it.countFasta() < params.min_reads_per_cluster }
-                                    .sum { it.countFasta() } ?: 0
-            total_low_count > 0 ? tuple(barcode, target, total_low_count) : null
+            .set { batched_clusters }
+    
+        FILTER_CLUSTERS_PARALLEL(
+            batched_clusters,
+            params.min_reads_per_cluster
+        )
+    
+        // Merge results back by barcode/target
+        cluster_fastas = FILTER_CLUSTERS_PARALLEL.out.filtered
+            .groupTuple(by: [0, 1])
+    
+        low_clusters_counts = FILTER_CLUSTERS_PARALLEL.out.low_count
+            .groupTuple(by: [0, 1])
+            .map { barcode, target, counts ->
+                tuple(barcode, target, counts.sum())
             }
-            .filter { it != null }
-            .groupTuple ( by: [0] ) // Group by barcode
-            .set { low_clusters_counts }
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 
