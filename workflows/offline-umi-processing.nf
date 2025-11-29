@@ -104,6 +104,13 @@ workflow OFFLINE_UMI_PROCESSING {
 
         CLUSTER( extracted_umis, raw )
 
+        // Add this debugging step temporarily
+        CLUSTER.out.cluster_fastas
+            .view { barcode, target, clusters -> 
+                "DEBUG: barcode=${barcode}, target=${target}, clusters type=${clusters.class.name}, size=${clusters.size()}, first=${clusters[0]?.class?.name}"
+            }
+            .set { cluster_fastas_debug }
+
         // Split large cluster sets into batches
         CLUSTER.out.cluster_fastas
             .flatMap { barcode, target, clusters ->
