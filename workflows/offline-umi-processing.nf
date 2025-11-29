@@ -111,11 +111,15 @@ workflow OFFLINE_UMI_PROCESSING {
             }
             .set { cluster_fastas_debug }
 
-        // Split large cluster sets into batches
+        // Split large cluster sets into batches - CORRECTED
         CLUSTER.out.cluster_fastas
             .flatMap { barcode, target, clusters ->
-                def batch_size = 1000 // files per batch
+                def batch_size = 1000
+        
+                // clusters is already an ArrayList of UnixPath objects
+                // Batch them and create individual channel items
                 clusters.collate(batch_size).withIndex().collect { batch, idx ->
+                    // batch is a List<Path> of up to 1000 files
                     tuple(barcode, target, idx, batch)
                 }
             }
@@ -127,14 +131,18 @@ workflow OFFLINE_UMI_PROCESSING {
         )
     
         // Merge results back by barcode/target
-        cluster_fastas = FILTER_CLUSTERS_PARALLEL.out.filtered
+        FILTER_CLUSTERS_PARALLEL.out.filtered
             .groupTuple(by: [0, 1])
+            .set { cluster_fastas }
     
-        low_clusters_counts = FILTER_CLUSTERS_PARALLEL.out.low_count
+        FILTER_CLUSTERS_PARALLEL.out.low_count
             .groupTuple(by: [0, 1])
             .map { barcode, target, counts ->
-                tuple(barcode, target, counts.sum())
+                // counts is a list of LOW_COUNT strings from each batch
+                def total = counts.collect { it as Integer }.sum()
+                tuple(barcode, target, total)
             }
+            .set { low_clusters_counts }
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 
