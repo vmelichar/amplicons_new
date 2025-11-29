@@ -109,12 +109,12 @@ workflow OFFLINE_UMI_PROCESSING {
             .view { barcode, target, clusters -> 
                 "DEBUG: barcode=${barcode}, target=${target}, clusters type=${clusters.class.name}, size=${clusters.size()}, first=${clusters[0]?.class?.name}"
             }
-            .set { cluster_fastas_debug }
+            .dump { pretty: true, tag: 'cluster'}
 
         // CORRECTED: Ensure paths stay as Path objects
         CLUSTER.out.cluster_fastas
             .flatMap { barcode, target, clusters ->
-                def batch_size = 1000
+                def batch_size = 10000
         
                 // clusters is ArrayList<UnixPath>
                 // Collate into batches and emit each batch
@@ -133,23 +133,31 @@ workflow OFFLINE_UMI_PROCESSING {
             .view { barcode, target, idx, batch -> 
                 "BATCH DEBUG: ${barcode}/${target} batch ${idx}: ${batch.getClass().name}, size=${batch.size()}, first=${batch[0]}"
             }
-            .set { batched_clusters_debug }
+            .dump { pretty: true, tag: 'batch'}
     
         FILTER_CLUSTERS_PARALLEL( batched_clusters )
     
-        // Merge results back by barcode/target
+        // Merge results back by barcode/target - CORRECTED
         FILTER_CLUSTERS_PARALLEL.out.filtered
             .groupTuple(by: [0, 1])
+            .map { barcode, target, file_lists ->
+                // file_lists is [ [files_from_batch0], [files_from_batch1], ... ]
+                // Flatten it to a single list
+                def all_files = file_lists.flatten()
+                tuple(barcode, target, all_files)
+            }
             .set { cluster_fastas }
+            .dump { pretty: true, tag: 'filtered'}
     
         FILTER_CLUSTERS_PARALLEL.out.low_count
             .groupTuple(by: [0, 1])
             .map { barcode, target, counts ->
-                // counts is a list of LOW_COUNT strings from each batch
-                def total = counts.collect { it as Integer }.sum()
+                // counts is a list of strings like ["150", "200", "75", ...]
+                def total = counts.collect { it as Integer }.sum() ?: 0
                 tuple(barcode, target, total)
             }
             .set { low_clusters_counts }
+            .dump { pretty: true, tag: 'low'}
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
 

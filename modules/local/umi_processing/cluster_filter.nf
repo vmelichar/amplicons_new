@@ -1,12 +1,12 @@
 process FILTER_CLUSTERS_PARALLEL {
     tag "${barcode}_${target}_batch${batch_idx}"
-    cpus 2
+    cpus 5
     
     input:
     tuple val(barcode), val(target), val(batch_idx), path('cluster_input/*')  // Stage all paths in the list to this directory
     
     output:
-    tuple val(barcode), val(target), path("filtered/*.fasta"), optional: true, emit: filtered
+    tuple val(barcode), val(target), path("filtered/cluster*"), optional: true, emit: filtered
     tuple val(barcode), val(target), env(LOW_COUNT), emit: low_count
     
     script:
