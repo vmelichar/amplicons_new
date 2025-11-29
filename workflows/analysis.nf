@@ -14,6 +14,6 @@ workflow ANALYSIS {
     main:
         ANALYSIS_SNP(final_bam, positions_file, variants_vcf, variants_tbi, analysis_script)
         
-        EXPORT_FILTER_STATS( export_stats, low_clusters_counts )
+        EXPORT_FILTER_STATS( export_stats, low_clusters_counts, ANALYSIS_SNP.out.flag_file )
 
 }

@@ -14,6 +14,7 @@ process ANALYSIS_SNP {
         path "*.csv"
         path "*.png"
         path "*.txt"
+        path "flag_file.md", emit: flag_file
 
     script:
 
@@ -27,5 +28,6 @@ process ANALYSIS_SNP {
         --positions ${positions_file} \
         -o .
         
+        touch flag_file.md
     """
 }

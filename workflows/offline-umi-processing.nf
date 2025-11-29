@@ -156,6 +156,7 @@ workflow OFFLINE_UMI_PROCESSING {
                 def total = counts.collect { it as Integer }.sum() ?: 0
                 tuple(barcode, target, total)
             }
+            .groupTuple(by: 0)
             .dump(pretty: true, tag: 'low')
             .set { low_clusters_counts }
 

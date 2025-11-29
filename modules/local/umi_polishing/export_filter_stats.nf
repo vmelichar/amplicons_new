@@ -5,6 +5,7 @@ process EXPORT_FILTER_STATS {
     input:
         path export_stats
         tuple val ( sample ), val ( hs_index ), val ( low_clusters_counts )
+        path flag_file
     
     output:
         tuple val( "${sample}" ), path ( "*.csv" )
