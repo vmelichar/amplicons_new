@@ -125,10 +125,7 @@ workflow OFFLINE_UMI_PROCESSING {
             }
             .set { batched_clusters }
     
-        FILTER_CLUSTERS_PARALLEL(
-            batched_clusters,
-            params.min_reads_per_cluster
-        )
+        FILTER_CLUSTERS_PARALLEL( batched_clusters )
     
         // Merge results back by barcode/target
         FILTER_CLUSTERS_PARALLEL.out.filtered
