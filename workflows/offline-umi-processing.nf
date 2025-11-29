@@ -111,19 +111,29 @@ workflow OFFLINE_UMI_PROCESSING {
             }
             .set { cluster_fastas_debug }
 
-        // Split large cluster sets into batches - CORRECTED
+        // CORRECTED: Ensure paths stay as Path objects
         CLUSTER.out.cluster_fastas
             .flatMap { barcode, target, clusters ->
                 def batch_size = 1000
         
-                // clusters is already an ArrayList of UnixPath objects
-                // Batch them and create individual channel items
-                clusters.collate(batch_size).withIndex().collect { batch, idx ->
-                    // batch is a List<Path> of up to 1000 files
-                    tuple(barcode, target, idx, batch)
-                }
+                // clusters is ArrayList<UnixPath>
+                // Collate into batches and emit each batch
+                def batches = clusters.collate(batch_size)
+        
+                batches.withIndex().collect { batch, idx ->
+                    // CRITICAL: batch must remain as List<Path>, not converted to String
+                    // Return as a tuple where the 4th element is the list itself
+                    [barcode, target, idx, batch]
             }
-            .set { batched_clusters }
+        }
+        .set { batched_clusters }
+
+        // Add debug to see what's being passed
+        batched_clusters
+            .view { barcode, target, idx, batch -> 
+                "BATCH DEBUG: ${barcode}/${target} batch ${idx}: ${batch.getClass().name}, size=${batch.size()}, first=${batch[0]}"
+            }
+            .set { batched_clusters_debug }
     
         FILTER_CLUSTERS_PARALLEL( batched_clusters )
     
