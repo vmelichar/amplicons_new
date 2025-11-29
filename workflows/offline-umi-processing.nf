@@ -109,7 +109,7 @@ workflow OFFLINE_UMI_PROCESSING {
             .view { barcode, target, clusters -> 
                 "DEBUG: barcode=${barcode}, target=${target}, clusters type=${clusters.class.name}, size=${clusters.size()}, first=${clusters[0]?.class?.name}"
             }
-            .dump ( pretty: true, tag: 'cluster' )
+            .dump(pretty: true, tag: 'cluster')
 
         // CORRECTED: Ensure paths stay as Path objects
         CLUSTER.out.cluster_fastas
@@ -133,7 +133,7 @@ workflow OFFLINE_UMI_PROCESSING {
             .view { barcode, target, idx, batch -> 
                 "BATCH DEBUG: ${barcode}/${target} batch ${idx}: ${batch.getClass().name}, size=${batch.size()}, first=${batch[0]}"
             }
-            .dump ( pretty: true, tag: 'batch' )
+            .dump(pretty: true, tag: 'batch')
     
         FILTER_CLUSTERS_PARALLEL( batched_clusters )
     
@@ -146,7 +146,7 @@ workflow OFFLINE_UMI_PROCESSING {
                 def all_files = file_lists.flatten()
                 tuple(barcode, target, all_files)
             }
-            .dump ( pretty: true, tag: 'filtered' )
+            .dump(pretty: true, tag: 'filtered')
             .set { cluster_fastas }
     
         FILTER_CLUSTERS_PARALLEL.out.low_count
@@ -156,7 +156,7 @@ workflow OFFLINE_UMI_PROCESSING {
                 def total = counts.collect { it as Integer }.sum() ?: 0
                 tuple(barcode, target, total)
             }
-            .dump ( pretty: true, tag: 'low' )
+            .dump(pretty: true, tag: 'low')
             .set { low_clusters_counts }
 
         REFORMAT_FILTER_CLUSTER( cluster_fastas, raw, umi_parse_clusters )
