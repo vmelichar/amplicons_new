@@ -549,7 +549,7 @@ def check_strands(df):
             for i in ['1','2','3', '4', '5', '6', '7', '8']:
                 if int(row.loc[(f'hs{i}', 'count')]) != int(row.loc[(f'hs{i}', 'plus')]) + int(row.loc[(f'hs{i}', 'minus')]):
                     n_err += 1
-                    print('Strands do not match!')
+                    print(f'Strands do not match! {index} HS{i}')
     if n_err == 0:
         print('No errors in strand counts.')
 
