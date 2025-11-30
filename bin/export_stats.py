@@ -108,10 +108,10 @@ def get_basic_strand_stats_to_dict(barcode, strand, input):
                         'reads_secondary': '-',
                         'reads_supplementary': '-',
                         'reads_on_target': target,
-                        'reads_concatamer': counts[0],
-                        'reads_short': counts[1],
-                        'reads_long': counts[2],
-                        'reads_filtered': counts[3]}
+                        'reads_concatamer': 0,
+                        'reads_short': counts[0],
+                        'reads_long': counts[1],
+                        'reads_filtered': counts[2]}
             return dict
         if strand == '-':
             counts = lines[1::2]
@@ -121,10 +121,10 @@ def get_basic_strand_stats_to_dict(barcode, strand, input):
                         'reads_secondary': '-',
                         'reads_supplementary': '-',
                         'reads_on_target': target,
-                        'reads_concatamer': counts[0],
-                        'reads_short': counts[1],
-                        'reads_long': counts[2],
-                        'reads_filtered': counts[3]}
+                        'reads_concatamer': 0,
+                        'reads_short': counts[0],
+                        'reads_long': counts[1],
+                        'reads_filtered': counts[2]}
             return dict
     
     else:
