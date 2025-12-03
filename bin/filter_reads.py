@@ -247,7 +247,7 @@ def filter_reads(args):
                 write_read(read, output, f"{output_filename}_short", out_format)
                 continue
             
-            if read.query_length > (region_length * ( 2 - min_overlap) + 2 * adapter_length):
+            if read.query_length > (region_length * ( 2.5 - min_overlap) + 2 * adapter_length):
                 n_long += 1
                 write_read(read, output, f"{output_filename}_long", out_format)
                 continue
