@@ -186,9 +186,9 @@ def get_detected_umis_stats(barcode, df, input):
                 f'hs{barcode}_minus': 0}
 
 
-def get_csv_stats(input):
+def get_csv_stats(input,hotspots):
     df = pd.DataFrame()
-    for barcode in range(1,9):
+    for barcode in hotspots:
         df = pd.concat([df, pd.DataFrame(get_basic_stats_to_dict(barcode, input), index=[f'hs{barcode}_count'])])
         df = pd.concat([df, pd.DataFrame(get_basic_stats_to_dict_perc(get_basic_stats_to_dict(barcode, input), part=True), index=[f'hs{barcode}_percPart'])])
         df = pd.concat([df, pd.DataFrame(get_basic_stats_to_dict_perc(get_basic_stats_to_dict(barcode, input), part=False), index=[f'hs{barcode}_percTot'])])
@@ -245,11 +245,12 @@ def get_extraction_stats_to_list(hs, mode, extraction, input, func=['med','mean'
         return [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
 
 
-def get_csv_extraction(input):
+def get_csv_extraction(input,hotspots):
     row_tupples = []
     columns_tupples = []
 
-    for hs in ['hs1', 'hs2', 'hs3', 'hs4', 'hs5', 'hs6', 'hs7', 'hs8']:
+    for i in hotspots:
+        hs = f'hs{i}'
         for v in ['synthetic', 'umi']:
             row_tupples.append((hs,v))
 
@@ -330,11 +331,12 @@ def get_extraction_basics_to_list(hs, mode, extraction, val, input):
         return [0,0,0]
 
 
-def get_csv_extraction_basics(input):
+def get_csv_extraction_basics(input,hotspots):
     columns_tupples = []
     rows = ['total', 'no_match', 'extracted']
 
-    for hs in ['hs1', 'hs2', 'hs3', 'hs4', 'hs5', 'hs6', 'hs7', 'hs8']:
+    for i in hotspots:
+        hs = f'hs{i}'
         for v in ['count', 'perc']:
             columns_tupples.append((hs,v))
         
@@ -422,10 +424,10 @@ def get_cluster_stats_to_list(hs, input, func=['med','mean']):
         return [0,0,0,0,0,0,0,0, 0,0,0, 0,0,0]
 
 
-def get_csv_cluster(input):
+def get_csv_cluster(input,hotspots):
     columns_tupples = []
 
-    rows = ['hs1', 'hs2', 'hs3', 'hs4', 'hs5', 'hs6', 'hs7', 'hs8']
+    rows = [f'hs{i}' for i in hotspots]
 
     for tot in ['Tot_clusters', '0Tot_clusters', '1Tot_clusters', 'perc1Tot_clusters', 'Tot_reads', 'reads_per_cluster', 'perc_of_detected', 'perc_used_polishing']:
         columns_tupples.append(('Total',tot))
@@ -521,12 +523,12 @@ def get_sankey_values(hs,input,low_clusters,hs_index):
             ]
 
 
-def get_sankey_all(input,low_clusters,hs_index):
+def get_sankey_all(input,low_clusters,hs_index,hotspots):
 
     sources = [0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 10, 10, 10, 10, 14]
     targets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
-    for hs in [1,2,3,4,5,6,7,8]:
+    for hs in hotspots:
         values = get_sankey_values(hs, input, low_clusters, hs_index)
 
         df = pd.DataFrame({'source': sources, 'target': targets, 'value': values})
@@ -546,11 +548,11 @@ def get_recombo_clusters_names(hs, input):
         return []
 
 
-def check_strands(df):
+def check_strands(df,hotspots):
     n_err = 0
     for index, row in df.iterrows():
         if index in ['reads_on_target','reads_concatamer', 'reads_short', 'reads_long', 'reads_filtered', 'detected_both_umis']:
-            for i in ['1','2','3', '4', '5', '6', '7', '8']:
+            for i in hotspots:
                 if int(row.loc[(f'hs{i}', 'count')]) != int(row.loc[(f'hs{i}', 'plus')]) + int(row.loc[(f'hs{i}', 'minus')]):
                     n_err += 1
                     print(f'Strands do not match! {index} HS{i}')
@@ -566,22 +568,28 @@ def count_perc_string(x,y):
 def main(argv=sys.argv[1:]):
     args = parse_args(argv=argv)
 
-    print('Parsing stats...')
-
+    print('Getting HSs...')
+    hotspots = []
+    target_dir = args.INPUT + '/barcode01/'
+    for entry in os.listdir(target_dir):
+        full_path = os.path.join(target_dir, entry)
+        # Check if the entry starts with the prefix AND is a directory
+        if entry.startswith('HS') and os.path.isdir(full_path):
+            hotspots.append(entry[2:])
 
     print('Parsing filtering stats...')
-    df_basic = get_csv_stats(args.INPUT)
-    check_strands(df_basic)
+    df_basic = get_csv_stats(args.INPUT, hotspots)
+    check_strands(df_basic, hotspots)
 
     print('Parsing extraction stats...')
-    df_extraction_med, df_extraction_mean, _, _ = get_csv_extraction(args.INPUT)
-    df_extraction_basics_synthetic, df_extraction_basics_umi, _, _ = get_csv_extraction_basics(args.INPUT)
+    df_extraction_med, df_extraction_mean, _, _ = get_csv_extraction(args.INPUT, hotspots)
+    df_extraction_basics_synthetic, df_extraction_basics_umi, _, _ = get_csv_extraction_basics(args.INPUT, hotspots)
 
     print('Parsing cluster stats...')
-    df_cluster_med, df_cluster_mean = get_csv_cluster(args.INPUT)
+    df_cluster_med, df_cluster_mean = get_csv_cluster(args.INPUT, hotspots)
 
     print('Sankey values calculation...')
-    get_sankey_all(args.INPUT, args.LOW_CL, args.HS_IDX)
+    get_sankey_all(args.INPUT, args.LOW_CL, args.HS_IDX, hotspots)
 
 
 if __name__ == '__main__':
