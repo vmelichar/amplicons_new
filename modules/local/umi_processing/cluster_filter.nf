@@ -1,6 +1,6 @@
 process FILTER_CLUSTERS_PARALLEL {
     tag "${barcode}_${target}_batch${batch_idx}"
-    cpus 5
+    cpus 3
     
     input:
     tuple val(barcode), val(target), val(batch_idx), path('cluster_input/*')  // Stage all paths in the list to this directory
