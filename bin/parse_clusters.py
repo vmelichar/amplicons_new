@@ -155,10 +155,6 @@ def get_read_umi(read):
 
 def get_read_mean_qual(read):
     qual = get_read_qual(read)
-    print(f'HASH: {read.name}') ###
-    print(f'LEN: {len(qual)}') ####
-    if len(qual) == 0: ###
-        print(f'Q: {qual}') ###
     return get_mean_qual(qual)
 
 
@@ -336,6 +332,19 @@ def write_tsv_line(stats_out_filename, cluster_id, cluster_written, reads_found,
               file=out_f)
 
 
+def get_valid_reads(reads,n)
+    valid_rd = []
+    n_valid_rd = 0
+    for read in reads:
+        if get_read_seq(read) == '' or get_read_qual(read) == '':
+            continue
+        else:
+            n_valid_rd += 1
+            valid_rd.append(read)
+    return valid_rd, n_valid_rd
+
+
+
 def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, balance_strands, tsv, max_edit_dist, stats_out_filename):
     """
     For each input cluster file, read the sequences, break them into subclusters such that
@@ -343,6 +352,7 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
     and then perform filtering and write the results.
     """
     residual_reads, n_residual_reads = get_reads(cluster)
+    valid_reads, n_valid_reads = get_valid_reads(residual_reads, n_residual_reads)
     cluster_id = get_cluster_id(cluster)
     
     # Cluster reads into subclusters based on pairwise edit distance
@@ -359,7 +369,6 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         n_rev = len(reads_rev)
 
         if filter == "quality":
-            print(f'==== CID:{cluster_id}, SCID: {n_subcluster} ====')
             reads_fwd = get_sorted_reads(reads_fwd)
             reads_rev = get_sorted_reads(reads_rev)
 
