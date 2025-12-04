@@ -338,6 +338,7 @@ def get_valid_reads(reads,n):
     for read in reads:
         print(f'===: {get_read_seq(read)}')
         if get_read_seq(read) == '' or get_read_qual(read) == '':
+            print('YYYYYYYY')
             continue
         else:
             n_valid_rd += 1
