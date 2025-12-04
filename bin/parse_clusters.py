@@ -155,6 +155,10 @@ def get_read_umi(read):
 
 def get_read_mean_qual(read):
     qual = get_read_qual(read)
+    print(f'HASH: {read.name}') ###
+    print(f'LEN: {len(qual)}') ####
+    if len(qual) == 0: ###
+        print(f'Q: {qual}') ###
     return get_mean_qual(qual)
 
 
@@ -355,6 +359,7 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         n_rev = len(reads_rev)
 
         if filter == "quality":
+            print(f'==== CID:{cluster_id}, SCID: {n_subcluster} ====')
             reads_fwd = get_sorted_reads(reads_fwd)
             reads_rev = get_sorted_reads(reads_rev)
 
