@@ -336,7 +336,7 @@ def get_valid_reads(reads,n):
     valid_rd = []
     n_valid_rd = 0
     for read in reads:
-        print(get_read_seq(read))
+        print(f'===: {get_read_seq(read)}')
         if get_read_seq(read) == '' or get_read_qual(read) == '':
             continue
         else:
