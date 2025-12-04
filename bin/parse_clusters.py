@@ -332,7 +332,7 @@ def write_tsv_line(stats_out_filename, cluster_id, cluster_written, reads_found,
               file=out_f)
 
 
-def get_valid_reads(reads,n)
+def get_valid_reads(reads,n):
     valid_rd = []
     n_valid_rd = 0
     for read in reads:
