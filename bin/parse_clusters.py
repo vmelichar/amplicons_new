@@ -342,12 +342,16 @@ def get_valid_reads(reads,n):
     for read in reads:
         ## print(f'===: {get_read_seq(read)}')
         if get_read_seq(read) == '' or get_read_qual(read) == '':
-            ## print('YYY')
+            print('YYY')
             continue
         else:
             n_valid_rd += 1
             valid_rd.append(read)
     return valid_rd, n_valid_rd
+
+def dfce(reads)
+    for rd in reads:
+        print(f'L: {len(get_read_qual(rd))}')
 
 
 
@@ -360,6 +364,10 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
     residual_reads, n_residual_reads = get_reads(cluster)
     valid_reads, n_valid_reads = get_valid_reads(residual_reads, n_residual_reads)
     cluster_id = get_cluster_id(cluster)
+
+    if cluster_id == 69447:
+        dfce(residual_reads)
+        dfce(valid_reads)
     
     # Cluster reads into subclusters based on pairwise edit distance
     subclusters = cluster_reads(residual_reads, max_edit_dist)
