@@ -361,8 +361,6 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         # Write the subcluster reads (for reference/debugging)
         subcluster_file = os.path.join(output_folder, "{}_subcluster_{}".format(cluster_id, n_subcluster))
         write_subcluster(subcluster, subcluster_file)
-
-        print(f'=== CID: {cluster_id}, SCID: {n_subcluster} ===') ### debug
         
         reads_found = len(subcluster)
         reads_fwd, reads_rev = get_split_reads(subcluster)
