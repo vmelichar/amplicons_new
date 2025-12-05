@@ -155,9 +155,9 @@ def get_read_umi(read):
 
 def get_read_mean_qual(read):
     qual = get_read_qual(read)
-    print(f'H: {read.name.split(';')[0]}')
-    print(f'L: {len(qual)}')
     if len(qual) == 0:
+        print(f'H: {read.name}')
+        print(f'L: {len(qual)}')
         print(f'Q: {qual}')
     return get_mean_qual(qual)
 
