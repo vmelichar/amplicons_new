@@ -155,6 +155,10 @@ def get_read_umi(read):
 
 def get_read_mean_qual(read):
     qual = get_read_qual(read)
+    print(f'H: {read.name.split(';')[0]}')
+    print(f'L: {len(qual)}')
+    if len(qual) == 0:
+        print(f'Q: {qual}')
     return get_mean_qual(qual)
 
 
@@ -336,9 +340,9 @@ def get_valid_reads(reads,n):
     valid_rd = []
     n_valid_rd = 0
     for read in reads:
-        print(f'===: {get_read_seq(read)}')
+        ## print(f'===: {get_read_seq(read)}')
         if get_read_seq(read) == '' or get_read_qual(read) == '':
-            print('YYYYYYYY')
+            ## print('YYY')
             continue
         else:
             n_valid_rd += 1
@@ -364,6 +368,8 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         # Write the subcluster reads (for reference/debugging)
         subcluster_file = os.path.join(output_folder, "{}_subcluster_{}".format(cluster_id, n_subcluster))
         write_subcluster(subcluster, subcluster_file)
+
+        print(f'=== CID: {cluster_id}, SCID: {n_subcluster} ===') ### debug
         
         reads_found = len(subcluster)
         reads_fwd, reads_rev = get_split_reads(subcluster)
