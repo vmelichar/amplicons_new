@@ -349,7 +349,7 @@ def get_valid_reads(reads,n):
             valid_rd.append(read)
     return valid_rd, n_valid_rd
 
-def dfce(reads)
+def dfce(reads):
     for rd in reads:
         print(f'L: {len(get_read_qual(rd))}')
 
