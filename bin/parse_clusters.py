@@ -365,7 +365,7 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
     valid_reads, n_valid_reads = get_valid_reads(residual_reads, n_residual_reads)
     cluster_id = get_cluster_id(cluster)
 
-    if cluster_id == 69447:
+    if str(cluster_id) == '69447':
         dfce(residual_reads)
         dfce(valid_reads)
     
