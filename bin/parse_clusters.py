@@ -187,7 +187,7 @@ def cluster_reads(reads, max_edit_dist):
         G.add_node(i)
     # add an edge for every pair that is within the edit distance threshold
     for i, j in combinations(range(len(reads)), 2):
-        result = edlib.align(reads[i].sequence, reads[j].sequence, mode="HW", k=max_edit_dist)
+        result = edlib.align(reads[i].sequence, reads[j].sequence, mode="NW", k=max_edit_dist)
         if result["editDistance"] != -1:
             G.add_edge(i, j)
     # Each connected component represents a subcluster
