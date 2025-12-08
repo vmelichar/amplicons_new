@@ -1,5 +1,5 @@
 process POLISH_CLUSTER {
-    tag "${sample}"
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/polishing/${type}", mode: 'copy'
 
 

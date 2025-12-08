@@ -1,5 +1,6 @@
 merged_fastq="merged_consensus.fastq"
 process MERGE_CONSENSUS_FASTQ {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/fastq/${type}", mode: 'copy'
     
     input:

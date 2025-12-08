@@ -1,4 +1,5 @@
 process MAP_CONSENSUS {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/align/${type}", mode: 'copy'
 
     input:

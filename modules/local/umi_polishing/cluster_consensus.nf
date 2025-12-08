@@ -2,6 +2,7 @@ consensus_fasta="consensus.fasta"
 vsearch_dir="vsearch_clusters"
 
 process CLUSTER_CONSENSUS {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/clustering/${type}", pattern: "${consensus_fasta}", mode: 'copy'
     publishDir "${params.output}/${sample}/${target}/clustering/${type}", pattern: "cluster*", mode: 'copy'
     

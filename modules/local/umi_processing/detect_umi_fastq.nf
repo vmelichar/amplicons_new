@@ -1,4 +1,5 @@
 process DETECT_UMI_FASTQ {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.tsv", mode: 'copy'
     
     input:

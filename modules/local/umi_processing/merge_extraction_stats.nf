@@ -1,4 +1,5 @@
 process MERGE_EXTRACTION_STATS {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*.tsv", mode: 'copy'
 
     input:

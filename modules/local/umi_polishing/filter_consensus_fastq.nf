@@ -1,5 +1,6 @@
 def filtered_fastq="masked_consensus.fastq"
 process FILTER_CONSENSUS_FASTQ {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/fastq/${type}", mode: 'copy'
     
     input:

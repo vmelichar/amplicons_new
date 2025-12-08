@@ -1,6 +1,6 @@
 process REFORMAT_FILTER_CLUSTER {
     beforeScript "rm -f ${params.output}/${sample}/${target}/clustering/${type}/*.tar.gz"
-    tag "${sample}"
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/clustering/${type}", pattern: "*.tar.gz", mode: 'copy'
     publishDir "${params.output}/${sample}/${target}/stats/${type}", pattern: "*tsv", mode: 'copy'
 

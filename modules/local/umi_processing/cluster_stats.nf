@@ -1,5 +1,5 @@
 process CLUSTER_STATS {
-    tag "$sample"
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/stats/${type}", mode: 'copy'
     
     input:

@@ -1,4 +1,5 @@
 process REFORMAT_CONSENSUS_CLUSTER {
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/fastq/${type}", mode: 'copy'
 
     input:

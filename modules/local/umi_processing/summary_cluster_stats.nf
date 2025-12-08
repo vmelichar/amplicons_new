@@ -1,4 +1,5 @@
 process SUMMARY_CLUSTER_STATS {   
+    tag "${sample}_${target}"
     maxForks 1
     publishDir "${params.output}/cluster_stats/", mode: 'copy'  
 

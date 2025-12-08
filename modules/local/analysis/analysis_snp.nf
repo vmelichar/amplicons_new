@@ -1,4 +1,5 @@
 process ANALYSIS_SNP {
+    tag "${sample}_${target}"
     conda '/home/melichv/miniconda3/envs/amplicons'
     publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.csv", mode: 'copy'
     publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.png", mode: 'copy'

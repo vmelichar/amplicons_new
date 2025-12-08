@@ -1,5 +1,5 @@
 process GLUE_CLUSTERS {
-    tag "${sample}"
+    tag "${sample}_${target}"
     publishDir "${params.output}/${sample}/${target}/clustering/${type}/glued", pattern: "${sample}_glued_clusters_*.${params.output_format}", mode: 'copy'
 
     input:
