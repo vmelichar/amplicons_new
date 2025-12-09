@@ -379,7 +379,7 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
         reads_written_fwd = 0
         reads_written_rev = 0
 
-        cluster_id_subcluster = "{}_sub{}".format(cluster_id, n_subcluster)
+        cluster_id_subcluster = "{}sub{}".format(cluster_id, n_subcluster)
         smolecule_file = os.path.join(
             output_folder, "smolecule{}.{}".format(cluster_id_subcluster, format)
         )
