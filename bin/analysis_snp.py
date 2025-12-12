@@ -194,7 +194,9 @@ def get_BP_graph(df, col, out_dir, hs):
     percentage_counts = df[col].value_counts().reset_index()
     percentage_counts.columns = ['Percentage', 'Count']
 
-    df[df.perc_B.between(0.2, 0.8, "both")].to_csv(out_dir + '_perc_counts.csv', 
+    df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3)].to_csv(out_dir + '_perc_counts.csv', 
+                   sep=',', index=True)
+    df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3)].to_csv(out_dir + '_perc_counts_highN.csv', 
                    sep=',', index=True)
 
     # Create lineplot
