@@ -176,7 +176,7 @@ def normalise_synthetic(result, pattern, query_seq):
             seq += t
     return seq
 
-def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction, strand, out_stats_synthetic, out_stats_umi):
+def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction, strand, out_stats_synthetic, out_stats_umi, seq_hash):
     umi_qual = None
     equalities = [("M", "A"), ("M", "C"), ("R", "A"), ("R", "G"), ("W", "A"), ("W", "T"), ("S", "C"), ("S", "G"), ("Y", "C"), ("Y", "T"), ("K", "G"), ("K", "T"), ("V", "A"), ("V", "C"),
                   ("V", "G"), ("H", "A"), ("H", "C"), ("H", "T"), ("D", "A"), ("D", "G"), ("D", "T"), ("B", "C"), ("B", "G"), ("B", "T"), ("N", "A"), ("N", "C"), ("N", "G"), ("N", "T"),
@@ -203,6 +203,7 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
             pattern_synthetic = rev_comp('CAAGCAGAAGACGGCATACGAGAT')
     else:
         write_stats(
+            seq_hash,
             None,
             None,
             None,
@@ -222,11 +223,12 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
         query_seq,
         task="path",
         mode="HW",
-        k=7,
+        k=5,
         additionalEqualities=equalities,
     )
     if result_synthetic["editDistance"] == -1:
         write_stats(
+            seq_hash,
             pattern_synthetic,
             None,
             None,
@@ -250,6 +252,7 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
     synthetic_length = len(synthetic_seq)
 
     write_stats(
+        seq_hash,
         pattern_synthetic,
         synthetic_seq,
         None,
@@ -282,6 +285,7 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
     )
     if result["editDistance"] == -1:
         write_stats(
+            seq_hash,
             pattern_synthetic,
             synthetic_seq,
             pattern,
@@ -303,6 +307,7 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
 
     if None in locs:
         write_stats(
+            seq_hash,
             pattern_synthetic,
             synthetic_seq,
             pattern,
@@ -324,6 +329,7 @@ def extract_umi(query_seq, query_qual, pattern, max_edit_dist, format, direction
         return None, None, None, None
 
     write_stats(
+        seq_hash,
         pattern_synthetic,
         synthetic_seq,
         pattern,
@@ -421,6 +427,7 @@ def combine_umis_fastq(seq_5p, seq_3p, qual_5p, qual_3p, strand):
 
 
 def write_stats(
+    seq_hash,
     pattern_synthetic,
     synthetic_seq,
     pattern_umi,
@@ -435,6 +442,7 @@ def write_stats(
 ):
     
     print(
+        seq_hash,
         pattern_synthetic,
         synthetic_seq,
         pattern_umi,
@@ -588,6 +596,7 @@ def extract_umis(
     strand_stats = {"+": 0, "-": 0, 'E': 0}
     with pysam.FastxFile(input_file) as fh, open(output_file, "w") as out, open(output_stats_synthetic, "w") as out_stats_synthetic, open(output_stats_umi, "w") as out_stats_umi:
         print(
+            'hash',
             'syn_pattern',
             'syn_seq',
             'umi_pattern',
@@ -602,6 +611,7 @@ def extract_umis(
             sep='\t'
         )
         print(
+            'hash',
             'syn_pattern',
             'syn_seq',
             'umi_pattern',
@@ -631,11 +641,11 @@ def extract_umis(
 
             # Extract fwd UMI
             result_5p_fwd_umi_dist, result_5p_fwd_umi_seq, result_5p_fwd_umi_qual, umi_start_fwd = extract_umi(
-                read_5p_seq, read_5p_qual, umi_fwd, max_pattern_dist, format, "fwd", strand, out_stats_synthetic, out_stats_umi
+                read_5p_seq, read_5p_qual, umi_fwd, max_pattern_dist, format, "fwd", strand, out_stats_synthetic, out_stats_umi, entry.name
             )
             # Extract rev UMI
             result_3p_rev_umi_dist, result_3p_rev_umi_seq, result_3p_rev_umi_qual, umi_start_rev = extract_umi(
-                read_3p_seq, read_3p_qual, umi_rev, max_pattern_dist, format, "rev", strand, out_stats_synthetic, out_stats_umi
+                read_3p_seq, read_3p_qual, umi_rev, max_pattern_dist, format, "rev", strand, out_stats_synthetic, out_stats_umi, entry.name
             )
 
             if not result_5p_fwd_umi_seq or not result_3p_rev_umi_seq:
