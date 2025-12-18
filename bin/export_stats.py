@@ -222,7 +222,7 @@ def get_extraction_stats_to_list(hs, mode, extraction, input, func=['med','mean'
 
     if os.path.exists(file):
         df = pd.read_csv(file, sep='\t', skiprows=1, header=None)
-        df.columns = ['patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
+        df.columns = ['hash', 'patt_syn', 'seq_syn', 'patt_umi', 'seq_umi', 'orient', 'strand', 'ed', 'len', 'strart', 'end']
 
         fwd_plus = df[(df['strand'] == '+') & (df['orient'] == 'fwd') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
         rev_plus = df[(df['strand'] == '+') & (df['orient'] == 'rev') & (df['ed'] != -1)][['ed', 'len', 'strart', 'end']]
