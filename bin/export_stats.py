@@ -58,8 +58,6 @@ def get_basic_stats_to_dict(barcode, input):
                     'reads_short': counts[8],
                     'reads_long': counts[9],
                     'reads_filtered': counts[10]}
-        print(barcode)
-        print(dict)
         return dict
 
     else:
@@ -72,8 +70,6 @@ def get_basic_stats_to_dict(barcode, input):
                     'reads_short': 0,
                     'reads_long': 0,
                     'reads_filtered': 0}
-        print(barcode)
-        print(dict)
         return dict
 
 def get_basic_stats_to_dict_perc(dict, part=False):
