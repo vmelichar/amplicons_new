@@ -55,6 +55,7 @@ def main(argv=sys.argv[1:]):
     seq_type_hash_df = pd.read_csv(args.SEQ_TYPE_HASH_FILE, sep='\t', header=0)
 
     # Merge extraction raw
+    print('Merging extraction raw data...')
     merged_extr_raw = pd.merge(
         extraction_raw_syn_df, 
         extraction_raw_umi_df,
@@ -69,6 +70,7 @@ def main(argv=sys.argv[1:]):
     extraction_cons_umi_df.drop(columns=['hash'], inplace=True)
     
     # Merge extraction consensus
+    print('Merging extraction consensus data...')
     merged_extr_cons = pd.merge(
         extraction_cons_syn_df, 
         extraction_cons_umi_df,
@@ -78,6 +80,7 @@ def main(argv=sys.argv[1:]):
     )
 
     # Merge with cluster hash
+    print('Merging with cluster hash data...')
     merged_raw_ext_cluster = pd.merge(
         merged_extr_raw,
         cluster_hash_df,
@@ -86,6 +89,7 @@ def main(argv=sys.argv[1:]):
     )
 
     # Merge raw extraction and cluster with consensus extraction
+    print('Merging all data together...')
     merged_cluster = pd.merge(
         merged_raw_ext_cluster,
         merged_extr_cons,
@@ -93,7 +97,11 @@ def main(argv=sys.argv[1:]):
         how='left'
     )
 
+    print(merged_cluster.columns)
+    print(seq_type_hash_df.columns)
+
     # Merge with seq type hash
+    print('Merging with sequence type hash data...')
     merged_final = pd.merge(
         merged_cluster,
         seq_type_hash_df,
