@@ -233,7 +233,7 @@ def get_cluster_type(df, out_dir):
     df.loc[df.perc_B.between(0, 0.2, "neither"), 'seq_type'] = 'Marginal_PWD'
     df.loc[df.perc_B.between(0.8, 1, "neither"), 'seq_type'] = 'Marginal_B6'
 
-    df.index = df.index.apply(lambda x: x.split('=')[1].split('_')[0])  # Simplify cluster names
+    df.index = df.index.map(lambda x: x.split('=')[1].split('_')[0])  # Simplify cluster names
 
     df['seq_type'].to_csv(out_dir + '_cluster_types.tsv', sep='\t', index=True)                                    
 
