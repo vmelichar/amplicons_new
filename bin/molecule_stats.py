@@ -63,28 +63,33 @@ def main(argv=sys.argv[1:]):
         suffixes=('_raw_syn', '_raw_umi')
     )
 
+    extraction_cons_syn_df['cluster_id'] = extraction_cons_syn_df['hash'].apply(lambda x: x.split('_')[0])
+    extraction_cons_syn_df.drop(columns=['hash'], inplace=True)
+    extraction_cons_umi_df['cluster_id'] = extraction_cons_umi_df['hash'].apply(lambda x: x.split('_')[0])
+    extraction_cons_umi_df.drop(columns=['hash'], inplace=True)
+    
     # Merge extraction consensus
     merged_extr_cons = pd.merge(
         extraction_cons_syn_df, 
         extraction_cons_umi_df,
-        on='hash',
+        on='cluster_id',
         how='left',
         suffixes=('_cons_syn', '_cons_umi')
     )
 
-    # Merge all extraction data
-    merged_extraction = pd.merge(
-        merged_extr_raw,
-        merged_extr_cons,
-        on='hash',
-        how='outer'
-    )
-
     # Merge with cluster hash
-    merged_cluster = pd.merge(
-        merged_extraction,
+    merged_raw_ext_cluster = pd.merge(
+        merged_extr_raw,
         cluster_hash_df,
         on='hash',
+        how='left'
+    )
+
+    # Merge raw extraction and cluster with consensus extraction
+    merged_cluster = pd.merge(
+        merged_raw_ext_cluster,
+        merged_extr_cons,
+        on='cluster_id',
         how='left'
     )
 
