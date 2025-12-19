@@ -61,6 +61,7 @@ def main(argv=sys.argv[1:]):
 
     cluster_hash_df = pd.read_csv(args.CLUSTER_HASH_FILE, sep='\t', header=0)
     seq_type_hash_df = pd.read_csv(args.SEQ_TYPE_HASH_FILE, sep='\t', header=0)
+    seq_type_hash_df.columns = ['cluster_id', 'seq_type']
 
     # Merge extraction raw
     print('Merging extraction raw data...')
