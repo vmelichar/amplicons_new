@@ -9,13 +9,14 @@ process MERGE_EXTRACTION_STATS {
     
     output:
         path "*stats.tsv", emit: stats_tsv
-        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_synthetic_stats.tsv" ), emit: extr_synthetic_stats
-        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_umi_stats.tsv" ), emit: extr_umi_stats
+        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_synthetic_*.tsv" ), emit: extr_synthetic_stats
+        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_umi_*.tsv" ), emit: extr_umi_stats
         val ( "${sample}" ), emit: dummy
 
     script:
         def write_report = params.write_reports ? "--tsv" : ""
         def cons = "${type}" == "consensus" ? "--cons" : ""
+        def cons_file_name = "${type}" == "consensus" ? "_consensus" : ""
 
     """
         python ${merge_extr_stats_python} \
@@ -25,5 +26,8 @@ process MERGE_EXTRACTION_STATS {
         $write_report \
         $cons \
         -o .
+
+        mv extraction_synthetic_stats.tsv extraction_synthetic_stats${cons_file_name}.tsv
+        mv extraction_umi_stats.tsv extraction_umi_stats${cons_file_name}.tsv
     """
 }
