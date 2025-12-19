@@ -48,9 +48,17 @@ def main(argv=sys.argv[1:]):
 
     # Load input files
     extraction_raw_syn_df = pd.read_csv(args.EXTRACTION_RAW_SYN_FILE, sep='\t', header=0)
+    extraction_raw_syn_df.drop(columns=['umi_pattern', 'umi_seq'], inplace=True)
+
     extraction_raw_umi_df = pd.read_csv(args.EXTRACTION_RAW_UMI_FILE, sep='\t', header=0)
+    extraction_raw_umi_df.drop(columns=['syn_pattern', 'syn_seq'], inplace=True)
+
     extraction_cons_syn_df = pd.read_csv(args.EXTRACTION_CONS_SYN_FILE, sep='\t', header=0)
+    extraction_cons_syn_df.drop(columns=['umi_pattern', 'umi_seq'], inplace=True)
+
     extraction_cons_umi_df = pd.read_csv(args.EXTRACTION_CONS_UMI_FILE, sep='\t', header=0)
+    extraction_cons_umi_df.drop(columns=['syn_pattern', 'syn_seq'], inplace=True)
+
     cluster_hash_df = pd.read_csv(args.CLUSTER_HASH_FILE, sep='\t', header=0)
     seq_type_hash_df = pd.read_csv(args.SEQ_TYPE_HASH_FILE, sep='\t', header=0)
 
