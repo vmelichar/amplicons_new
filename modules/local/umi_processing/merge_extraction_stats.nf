@@ -16,7 +16,6 @@ process MERGE_EXTRACTION_STATS {
     script:
         def write_report = params.write_reports ? "--tsv" : ""
         def cons = "${type}" == "consensus" ? "--cons" : ""
-        def cons_file_name = "${type}" == "consensus" ? "_consensus" : ""
 
     """
         python ${merge_extr_stats_python} \
@@ -27,7 +26,9 @@ process MERGE_EXTRACTION_STATS {
         $cons \
         -o .
 
-        mv extraction_synthetic_stats.tsv extraction_synthetic_stats${cons_file_name}.tsv
-        mv extraction_umi_stats.tsv extraction_umi_stats${cons_file_name}.tsv
+        if [ "${type}" == "consensus" ]; then
+            mv extraction_synthetic_stats.tsv extraction_synthetic_stats_consensus.tsv
+            mv extraction_umi_stats.tsv extraction_umi_stats_consensus.tsv
+        fi
     """
 }
