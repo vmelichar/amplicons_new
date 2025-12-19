@@ -159,5 +159,9 @@ workflow OFFLINE_UMI_PROCESSING {
         emit:
             processed_umis
             low_clusters_counts
+            extr_synthetic_stats = MERGE_EXTRACTION_STATS.out.extr_synthetic_stats
+            extr_umi_stats = MERGE_EXTRACTION_STATS.out.extr_umi_stats
+            cluster_read_hash = REFORMAT_FILTER_CLUSTER.out.cluster_read_hash
+
 
 }

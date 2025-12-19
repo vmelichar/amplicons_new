@@ -307,14 +307,14 @@ def write_fasta_read(read_name, read_seq, out_f):
     print("{}".format(read_seq), file=out_f)
 
 
-def write_subcluster(subcluster, subcluster_filename):
-    """
-    Writes the reads in a subcluster to a file (in FASTA format).
-    """
-    with open(subcluster_filename, "w") as out_f:
-        for read in subcluster:
-            print(">{}".format(read.name), file=out_f)
-            print("{}".format(read.sequence), file=out_f)
+# def write_subcluster(subcluster, subcluster_filename):
+#     """
+#     Writes the reads in a subcluster to a file (in FASTA format).
+#     """
+#     with open(subcluster_filename, "w") as out_f:
+#         for read in subcluster:
+#             print(">{}".format(read.name), file=out_f)
+#             print("{}".format(read.sequence), file=out_f)
             
 
 def write_tsv_line(stats_out_filename, cluster_id, cluster_written, reads_found, n_fwd, n_rev, reads_written_fwd, reads_written_rev, reads_skipped_fwd, reads_skipped_rev):
@@ -343,8 +343,14 @@ def get_valid_reads(reads,n):
             valid_rd.append(read)
     return valid_rd, n_valid_rd
 
+def write_hash_cluster(filename, cluster_id, subcluster_id, reads):
+    with open(filename, "a") as out_f:
+        for read in reads:
+            read_name = get_read_name(read)
+            print("{}\t{}sub{}".format(read_name, cluster_id, subcluster_id), file=out_f)
 
-def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, balance_strands, tsv, max_edit_dist, stats_out_filename):
+
+def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, balance_strands, tsv, max_edit_dist, stats_out_filename, hash_cluster_filename):
     """
     For each input cluster file, read the sequences, break them into subclusters such that
     sequences in each subcluster are similar (i.e. within max_edit_dist of at least one other read),
@@ -359,8 +365,10 @@ def parse_cluster(min_reads, max_reads, filter, format, cluster, output_folder, 
     
     for n_subcluster, subcluster in enumerate(subclusters):
         # Write the subcluster reads (for reference/debugging)
-        subcluster_file = os.path.join(output_folder, "{}_subcluster_{}".format(cluster_id, n_subcluster))
-        write_subcluster(subcluster, subcluster_file)
+        # subcluster_file = os.path.join(output_folder, "{}_subcluster_{}".format(cluster_id, n_subcluster))
+        # write_subcluster(subcluster, subcluster_file)
+
+        write_hash_cluster(hash_cluster_filename, cluster_id, n_subcluster, subcluster)
         
         reads_found = len(subcluster)
         reads_fwd, reads_rev = get_split_reads(subcluster)
@@ -421,9 +429,13 @@ def parse_cluster_wrapper(args):
     max_edit_dist = args.MAX_EDIT_DIST
 
     stats_out_filename = "split_cluster_stats"
+    hash_cluster_filename = "cluster_read_hash"
     if tsv:
         stats_out_filename = os.path.join(
             output_folder, "{}.tsv".format(stats_out_filename)
+        )
+        hash_cluster_filename = os.path.join(
+            output_folder, "{}.tsv".format(hash_cluster_filename)
         )
         # write header
         write_tsv_line(
@@ -438,6 +450,8 @@ def parse_cluster_wrapper(args):
             "reads_skipped_fwd",
             "reads_skipped_rev",
         )
+        with open(hash_cluster_filename, "w") as out_f:
+            print("hash\tcluster_id", file=out_f)
 
     with open(clusters, 'r') as cluster_list_file:
         clusters_list = [line.strip() for line in cluster_list_file]
@@ -459,6 +473,7 @@ def parse_cluster_wrapper(args):
             tsv,
             max_edit_dist,
             stats_out_filename,
+            hash_cluster_filename
         )
 
 

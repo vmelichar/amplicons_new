@@ -75,6 +75,8 @@ workflow UMI_POLISHING {
     emit: 
         consensus_bam = MAP_CONSENSUS.out.bam_consensus
         final_consensus_bam = MAP_FINAL_CONSENSUS.out.bam_consensus
-        snp_analysis_bam
+        snp_analysis_bam = snp_analysis_bam
+        extr_synthetic_stats_cons = MERGE_CONSENSUS_EXTRACTION_STATS.out.extr_synthetic_stats
+        extr_umi_stats_cons = MERGE_CONSENSUS_EXTRACTION_STATS.out.extr_umi_stats
 
 }

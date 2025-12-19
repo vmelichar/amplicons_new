@@ -15,6 +15,7 @@ process ANALYSIS_SNP {
         path "*.csv"
         path "*.png"
         path "*.txt"
+        tuple val( "${sample}" ), val( "${target}" ), path( "*_cluster_types.tsv" ), emit: cluster_types_file
         path "flag_file.md", emit: flag_file
 
     script:

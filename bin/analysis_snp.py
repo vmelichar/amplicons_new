@@ -224,6 +224,19 @@ def get_rest(df, out_dir):
         for name in list(df[df.perc_B == 1].index):
             print(name, file=b6_file)
 
+def get_cluster_type(df, out_dir):
+    df['seq_type'] = 'X'
+    df.loc[df.perc_B == 1, 'seq_type'] = 'Complete_B6'
+    df.loc[df.perc_B == 0, 'seq_type'] = 'Complete_PWD'
+    df.loc[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3), 'seq_type'] = 'Recombo_highConf'
+    df.loc[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3), 'seq_type'] = 'Recombo_lowConf'
+    df.loc[df.perc_B.between(0, 0.2, "neither"), 'seq_type'] = 'Marginal_PWD'
+    df.loc[df.perc_B.between(0.8, 1, "neither"), 'seq_type'] = 'Marginal_B6'
+
+    df.index = df.index.apply(lambda x: x.split('=')[1].split('_')[0])  # Simplify cluster names
+
+    df['seq_type'].to_csv(out_dir + '_cluster_types.tsv', sep='\t', index=True)                                    
+
 
 def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     
@@ -235,6 +248,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     get_BP_graph(df, 'perc_B', output_dir, hs)
     get_BP_graph(df, 'perc_N', output_dir, hs)
     get_rest(df, output_dir)
+    get_cluster_type(df, output_dir)
 
 
 def main(argv=sys.argv[1:]):

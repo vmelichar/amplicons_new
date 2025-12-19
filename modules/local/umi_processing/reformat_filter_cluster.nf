@@ -13,6 +13,7 @@ process REFORMAT_FILTER_CLUSTER {
         tuple val( "${sample}" ), val( "${target}" ), path( "smolecule*"), val(task.index), optional: true, emit: smolecule_cluster_fastqs
         tuple val( "${sample}" ), val ( "${target}" ), path( "*.tsv" ), optional: true, emit: smolecule_cluster_stats
         tuple val( "${sample}" ), val( "${target}" ), path( "*.tar.gz"), optional: true
+        tuple val( "${sample}" ), val( "${target}" ), path( "cluster_read_hash.tsv" ), optional: true, emit: cluster_read_hash
 
     script:
         def balance_strands = params.balance_strands ? "--balance_strands" : ""

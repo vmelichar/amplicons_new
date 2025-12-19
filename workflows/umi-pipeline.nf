@@ -33,6 +33,7 @@ workflow UMI_PIPELINE {
         merge_filter_stats          = file( "${projectDir}/bin/merge_stats_filter.py", checkIfExists: true )
         export_stats                = file( "${projectDir}/bin/export_stats.py", checkIfExists: true )
         analysis_script             = file( "${projectDir}/bin/analysis_snp.py", checkIfExists: true)
+        molecule_stats_python       = file( "${projectDir}/bin/molecule_stats.py", checkIfExists: true )
 
         // subdirectory and file prefixes
         raw                         = "raw"
@@ -96,8 +97,6 @@ workflow UMI_PIPELINE {
 
             OFFLINE_UMI_PROCESSING.out.processed_umis
                 .set{ processed_umis }
-            OFFLINE_UMI_PROCESSING.out.low_clusters_counts
-                .set{ low_clusters_counts }
         }
 
         UMI_POLISHING(
@@ -129,6 +128,12 @@ workflow UMI_PIPELINE {
             variants_vcf,
             variants_tbi,
             export_stats,
-            low_clusters_counts
+            OFFLINE_UMI_PROCESSING.out.low_clusters_counts,
+            OFFLINE_UMI_PROCESSING.out.extr_synthetic_stats,
+            OFFLINE_UMI_PROCESSING.out.extr_umi_stats,
+            OFFLINE_UMI_PROCESSING.out.cluster_read_hash,
+            UMI_POLISHING.out.extr_synthetic_stats_cons,
+            UMI_POLISHING.out.extr_umi_stats_cons,
+            molecule_stats_python
         )
 }

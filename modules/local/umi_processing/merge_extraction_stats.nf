@@ -9,6 +9,8 @@ process MERGE_EXTRACTION_STATS {
     
     output:
         path "*stats.tsv", emit: stats_tsv
+        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_synthetic_stats.tsv" ), emit: extr_synthetic_stats
+        tuple val( "${sample}" ), val ( "${target}" ), path( "extraction_umi_stats.tsv" ), emit: extr_umi_stats
         val ( "${sample}" ), emit: dummy
 
     script:
