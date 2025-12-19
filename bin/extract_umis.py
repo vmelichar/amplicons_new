@@ -601,7 +601,7 @@ def extract_umis(
             'syn_seq',
             'umi_pattern',
             'umi_seq',
-            'orientation'
+            'orientation',
             'strand',
             'edit_dist',
             'length',
