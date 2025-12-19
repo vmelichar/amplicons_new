@@ -49,15 +49,27 @@ def main(argv=sys.argv[1:]):
     # Load input files
     extraction_raw_syn_df = pd.read_csv(args.EXTRACTION_RAW_SYN_FILE, sep='\t', header=0)
     extraction_raw_syn_df.drop(columns=['umi_pattern', 'umi_seq'], inplace=True)
+    extraction_raw_syn_df = extraction_raw_syn_df.pivot(index='hash', columns='orientation')
+    extraction_raw_syn_df.columns = [f"{col[0]}_{col[1]}" for col in extraction_raw_syn_df.columns]
+    extraction_raw_syn_df.reset_index(inplace=True)
 
     extraction_raw_umi_df = pd.read_csv(args.EXTRACTION_RAW_UMI_FILE, sep='\t', header=0)
     extraction_raw_umi_df.drop(columns=['syn_pattern', 'syn_seq'], inplace=True)
+    extraction_raw_umi_df = extraction_raw_umi_df.pivot(index='hash', columns='orientation')
+    extraction_raw_umi_df.columns = [f"{col[0]}_{col[1]}" for col in extraction_raw_umi_df.columns]
+    extraction_raw_umi_df.reset_index(inplace=True)
 
     extraction_cons_syn_df = pd.read_csv(args.EXTRACTION_CONS_SYN_FILE, sep='\t', header=0)
     extraction_cons_syn_df.drop(columns=['umi_pattern', 'umi_seq'], inplace=True)
+    extraction_cons_syn_df = extraction_cons_syn_df.pivot(index='hash', columns='orientation')
+    extraction_cons_syn_df.columns = [f"{col[0]}_{col[1]}" for col in extraction_cons_syn_df.columns]
+    extraction_cons_syn_df.reset_index(inplace=True)
 
     extraction_cons_umi_df = pd.read_csv(args.EXTRACTION_CONS_UMI_FILE, sep='\t', header=0)
     extraction_cons_umi_df.drop(columns=['syn_pattern', 'syn_seq'], inplace=True)
+    extraction_cons_umi_df = extraction_cons_umi_df.pivot(index='hash', columns='orientation')
+    extraction_cons_umi_df.columns = [f"{col[0]}_{col[1]}" for col in extraction_cons_umi_df.columns]
+    extraction_cons_umi_df.reset_index(inplace=True)
 
     cluster_hash_df = pd.read_csv(args.CLUSTER_HASH_FILE, sep='\t', header=0)
     seq_type_hash_df = pd.read_csv(args.SEQ_TYPE_HASH_FILE, sep='\t', header=0)
@@ -103,7 +115,8 @@ def main(argv=sys.argv[1:]):
         merged_raw_ext_cluster,
         merged_extr_cons,
         on='cluster_id',
-        how='left'
+        how='left',
+        suffixes=('_raw', '_cons')
     )
 
     print(merged_cluster.columns)
