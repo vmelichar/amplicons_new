@@ -11,6 +11,7 @@ include {SUMMARY_CLUSTER_STATS} from '../modules/local/umi_processing/summary_cl
 include {MERGE_EXTRACTION_STATS} from '../modules/local/umi_processing/merge_extraction_stats.nf'
 include {MERGE_FILTER_STATS} from '../modules/local/umi_processing/merge_filter_stats.nf'
 include {STRAND_STATS} from '../modules/local/umi_processing/strand_stats.nf'
+include {RENAME_SEQUENCES} from '../modules/local/rename_fastq.nf'
 
 
 workflow OFFLINE_UMI_PROCESSING {
@@ -30,7 +31,7 @@ workflow OFFLINE_UMI_PROCESSING {
         merge_filter_stats
 
     main:       
-        Channel
+        channel
             .fromPath("${params.input}/barcode*/*.fastq*")
             .map{ 
                 fastqs -> 
@@ -38,7 +39,13 @@ workflow OFFLINE_UMI_PROCESSING {
                 tuple(barcode, fastqs)
                 }
             .groupTuple( by: 0 ) 
-            .set{ existing_fastqs }
+            .set{ existing_fastqs_hash }
+
+        // Rename sequences to include also the file basename in the read header
+        RENAME_SEQUENCES( existing_fastqs_hash )
+        RENAME_SEQUENCES.out
+        .groupTuple( by: 0 )
+        .set{ existing_fastqs }
 
         if( params.subsampling ){
             MERGE_FASTQ( existing_fastqs )
@@ -77,16 +84,16 @@ workflow OFFLINE_UMI_PROCESSING {
         
         // Each SPLIT_READS output may or may not exist
         strand_short  = SPLIT_READS.out.split_reads_fastx_short
-                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+                  ?.groupTuple(by:[0,1]) ?: channel.empty()
 
         strand_long   = SPLIT_READS.out.split_reads_fastx_long
-                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+                  ?.groupTuple(by:[0,1]) ?: channel.empty()
 
         strand_filter = SPLIT_READS.out.split_reads_fastx
-                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+                  ?.groupTuple(by:[0,1]) ?: channel.empty()
 
         extracted_umis = DETECT_UMI_FASTQ.out.umi_extract_fastq
-                  ?.groupTuple(by:[0,1]) ?: Channel.empty()
+                  ?.groupTuple(by:[0,1]) ?: channel.empty()
 
         extracted_umis
         .join(strand_short, by: [0, 1])
