@@ -44,7 +44,6 @@ workflow OFFLINE_UMI_PROCESSING {
         // Rename sequences to include also the file basename in the read header
         RENAME_SEQUENCES( existing_fastqs_hash )
         RENAME_SEQUENCES.out
-        .groupTuple( by: 0 )
         .set{ existing_fastqs }
 
         if( params.subsampling ){
