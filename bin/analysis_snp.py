@@ -129,7 +129,7 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                          index='read', 
                          columns='position', 
                          values=['base','qual'], 
-                         aggfunc=lambda x: '$$'.join(str(x)), 
+                         aggfunc=lambda x: ''.join(str(x)), 
                          fill_value='.')
     df_long.to_csv(out_dir + '_counts.csv', 
                    sep=',', index=True)
