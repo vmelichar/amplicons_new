@@ -122,6 +122,8 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
 
     # Prepare output
     df = pd.DataFrame(bases)
+    df.to_csv(out_dir + '_test.csv', 
+                   sep=',', index=True)
 
     df_long = pd.pivot_table(df, 
                          index='read', 
