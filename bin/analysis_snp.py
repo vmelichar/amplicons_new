@@ -225,7 +225,7 @@ def get_BP_graph(df, col, out_dir, hs):
     create_lineplot(percentage_counts, col, out_dir, hs)
 
 def get_tables(df, out_dir):
-    open(out_dir + '_stats.txt', 'w') as f_stats
+    f_stats = open(out_dir + '_stats.txt', 'w')
     print(f'Total seqs: {len(df)}\n', file=f_stats)
     print(f'Error seqs: {len(df[df.Err > 0.05])}\n', file=f_stats)
     print(f'High confidence seqs: {len(df[df.Err <= 0.05])}\n', file=f_stats)
@@ -253,6 +253,8 @@ def get_tables(df, out_dir):
 
     df[df.perc_B.between(0, 1, "neither")].to_csv(out_dir + '_recombo.csv', sep=',', index=True)
     print(f'Recombo seqs: {len(df[df.perc_B.between(0, 1, "neither")])}\n', file=f_stats)
+
+    f_stats.close()
 
     with open(out_dir + '_seqs_PWD.txt', 'w') as pwd_file:
         for name in list(df[df.perc_B == 0].index):
