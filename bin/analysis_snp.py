@@ -281,7 +281,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     bam = pysam.AlignmentFile(input_bam, "rb", index_filename=input_bai)
 
     df = get_bases(bam, vcf, tbi, positions, output_dir)
-    df_long.columns = [f"{level0}_{level1}" for level0, level1 in df_long.columns]
+    df.columns = [f"{level0}_{level1}" for level0, level1 in df.columns]
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1)
 
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
