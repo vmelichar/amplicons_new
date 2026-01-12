@@ -57,7 +57,7 @@ def find_base_in_alignment(alignment: pysam.AlignedSegment,
         seq = alignment.get_forward_sequence()
     
     if seq is None:
-        return None
+        return [None, None]
     
     # Use CIGAR string from bam file
     # cigar alignment is represented by list of tuples (operation,length)
@@ -76,13 +76,13 @@ def find_base_in_alignment(alignment: pysam.AlignedSegment,
                 base = seq[idx_q + idx_r - 1]
 
                 quality = alignment.query_qualities[idx_q + idx_r - 1]
-                if quality >= 15:
-                    return base
+                if quality >= 4:
+                    return [base, quality]
                 else:
-                    return "N"
+                    return ["N", quality]
             else:
                 # position has been deleted
-                return "D"
+                return ["D", 0]
 
 def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
     # Load VCF file
@@ -102,7 +102,7 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
             for read in bam.fetch('chr' + chrom, pos-1, pos+1):
                 if not read.is_supplementary and not read.is_unmapped and not read.is_secondary:
                     # minimap2 always store forward strand (even when original sequence is aligned to reverse strand)
-                    base = find_base_in_alignment(read, pos, bam_stores_revcomp = True) #if find_base_in_alignment(read, pos, bam_stores_revcomp = True) is not None else ("0")
+                    base, qual = find_base_in_alignment(read, pos, bam_stores_revcomp = True) #if find_base_in_alignment(read, pos, bam_stores_revcomp = True) is not None else ("0")
 
                     if base == ref:
                         base = "B"
@@ -116,6 +116,7 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         "read": read.query_name,
                         "position": f'{chrom}:{pos}',
                         "base": base,
+                        "qual": qual
                         })
                 else: continue
 
@@ -125,7 +126,7 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
     df_long = pd.pivot_table(df, 
                          index='read', 
                          columns='position', 
-                         values='base', 
+                         values=['base','qual'], 
                          aggfunc=lambda x: ' '.join(x), 
                          fill_value='.')
     df_long.to_csv(out_dir + '_counts.csv', 
@@ -134,10 +135,20 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
 
 
 def get_ratios(row):
-   occurances_dict = row.value_counts().to_dict()
+   base_cols = [c for c in row.index if str(c).startswith('base')
+   qual_cols = [c for c in row.index if str(c).startswith('qual')
+
+   base_sr = row[base_cols]
+   qual_sr = row[qual_cols]
+
+   occurances_dict = base_sr.value_counts().to_dict()
+   
    B = occurances_dict.get('B', 0)
    P = occurances_dict.get('P', 0)
    N = occurances_dict.get('N', 0)
+   X = occurances_dict.get('X', 0)
+   M = occurances_dict.get('M', 0)
+   D = occurances_dict.get('D', 0)
    dot = occurances_dict.get('.', 0)
    SNPs = len(row) - dot
    # 1 - B6 strand, 0 - PWD strand
@@ -147,8 +158,23 @@ def get_ratios(row):
    else:
       ratioBP = B / (B + P)
    ratioN = N / SNPs
-   #other = SNPs - B - P - N
-   return pd.Series([round(ratioBP,2), round(ratioN,2)]) 
+   
+   minority_allele = 'P' if P < B else 'B'
+
+   prob_all_correct = 1.0
+
+   for idx, allele in enumerate(base_sr):
+      if allele == minority_allele or allele in ['N', 'X', 'M', 'D']:
+        q_score = qual_sr[idx]
+
+        if allele in ['P', 'B']:
+            s_i = (10 ** (-q_score / 10.0)) / 3.0
+            prob_all_correct *= (1.0 - s_i)
+        else:
+            prob_all_correct *= 0.25
+   error = 1.0 - prob_all_correct
+
+   return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), B, P, N, X, M, D]) 
 
 def create_barplot(percentages, counts, out_dir, chimera_perc, chimeras, hs):
     plt.figure(figsize=(7, 5))
@@ -194,27 +220,39 @@ def get_BP_graph(df, col, out_dir, hs):
     percentage_counts = df[col].value_counts().reset_index()
     percentage_counts.columns = ['Percentage', 'Count']
 
-    df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3)].to_csv(out_dir + '_perc_counts.csv', 
-                   sep=',', index=True)
-    df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3)].to_csv(out_dir + '_perc_counts_highN.csv', 
-                   sep=',', index=True)
-
     # Create lineplot
     print('Plotting lineplot...')
     create_lineplot(percentage_counts, col, out_dir, hs)
 
-def get_rest(df, out_dir):
-    df[df.perc_B.between(0, 0.2, "neither")].to_csv(out_dir + '_perc_counts_upto2.csv',
-                   sep=',', index=True)
+def get_tables(df, out_dir):
+    open(out_dir + '_stats.txt', 'w') as f_stats
+    print(f'Total seqs: {len(df)}\n', file=f_stats)
+    print(f'Error seqs: {len(df[df.Err > 0.05])}\n', file=f_stats)
+    print(f'High confidence seqs: {len(df[df.Err <= 0.05])}\n', file=f_stats)
 
-    df[df.perc_B.between(0.8, 1, "neither")].to_csv(out_dir + '_perc_counts_from8.csv',
-                   sep=',', index=True)
+    # Filter for Error threshold
+    df = df[df.Err < 0.05]
+
+    #df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3)].to_csv(out_dir + '_perc_counts.csv', 
+    #            sep=',', index=True)
+
+    #df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3)].to_csv(out_dir + '_perc_counts_highN.csv', 
+    #            sep=',', index=True)
+
+    #df[df.perc_B.between(0, 0.2, "neither")].to_csv(out_dir + '_perc_counts_upto2.csv',
+    #            sep=',', index=True)
+
+    #df[df.perc_B.between(0.8, 1, "neither")].to_csv(out_dir + '_perc_counts_from8.csv',
+    #            sep=',', index=True)
     
-    df[df.perc_B == 0].to_csv(out_dir + '_perc_counts_allPWD.csv',
-                   sep=',', index=True)
+    df[df.perc_B == 0].to_csv(out_dir + '_allPWD.csv', sep=',', index=True)
+    print(f'PWD seqs: {len(df[df.perc_B == 0])}\n', file=f_stats)
 
-    df[df.perc_B == 1].to_csv(out_dir + '_perc_counts_allB6.csv',
-                   sep=',', index=True)
+    df[df.perc_B == 1].to_csv(out_dir + '_allB6.csv', sep=',', index=True)
+    print(f'B6 seqs: {len(df[df.perc_B == 1])}\n', file=f_stats)
+
+    df[df.perc_B.between(0, 1, "neither")].to_csv(out_dir + '_recombo.csv', sep=',', index=True)
+    print(f'Recombo seqs: {len(df[df.perc_B.between(0, 1, "neither")])}\n', file=f_stats)
 
     with open(out_dir + '_seqs_PWD.txt', 'w') as pwd_file:
         for name in list(df[df.perc_B == 0].index):
@@ -226,12 +264,10 @@ def get_rest(df, out_dir):
 
 def get_cluster_type(df, out_dir):
     df['seq_type'] = 'X'
-    df.loc[df.perc_B == 1, 'seq_type'] = 'Complete_B6'
-    df.loc[df.perc_B == 0, 'seq_type'] = 'Complete_PWD'
-    df.loc[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3), 'seq_type'] = 'Recombo_highConf'
-    df.loc[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3), 'seq_type'] = 'Recombo_lowConf'
-    df.loc[df.perc_B.between(0, 0.2, "neither"), 'seq_type'] = 'Marginal_PWD'
-    df.loc[df.perc_B.between(0.8, 1, "neither"), 'seq_type'] = 'Marginal_B6'
+    df.loc[df.Err > 0.05, 'seq_type'] = 'Low_Confidence'
+    df.loc[(df.Err <= 0.05) & (df.perc_B == 1), 'seq_type'] = 'Complete_B6'
+    df.loc[(df.Err <= 0.05) & (df.perc_B == 0), 'seq_type'] = 'Complete_PWD'
+    df.loc[(df.Err <= 0.05) & (df.perc_B.between(0, 1, 'neither')), 'seq_type'] = 'Recombo'
 
     df.index = df.index.map(lambda x: x.split('=')[1].split('_')[0])  # Simplify cluster names
 
@@ -243,13 +279,18 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     bam = pysam.AlignmentFile(input_bam, "rb", index_filename=input_bai)
 
     df = get_bases(bam, vcf, tbi, positions, output_dir)
-    df[['perc_B', 'perc_N']] = df.apply(get_ratios, axis=1)
+    df_long.columns = [f"{level0}_{level1}" for level0, level1 in df_long.columns]
+    df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1)
+
+    qual_cols = [c for c in df.columns if str(c).startswith('qual')]
+    df.drop(columns=qual_cols, inplace=True)
+    df.columns = [str(c).split('_')[1] for c in df.columns if str(c).startswith('base') else str(c)]
 
     get_BP_graph(df, 'perc_B', output_dir, hs)
     get_BP_graph(df, 'perc_N', output_dir, hs)
-    get_rest(df, output_dir)
-    get_cluster_type(df, output_dir)
 
+    get_tables(df, output_dir)
+    get_cluster_type(df, output_dir)
 
 def main(argv=sys.argv[1:]):
     """
