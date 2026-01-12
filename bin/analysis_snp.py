@@ -135,8 +135,8 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
 
 
 def get_ratios(row):
-   base_cols = [c for c in row.index if str(c).startswith('base')
-   qual_cols = [c for c in row.index if str(c).startswith('qual')
+   base_cols = [c for c in row.index if str(c).startswith('base')]
+   qual_cols = [c for c in row.index if str(c).startswith('qual')]
 
    base_sr = row[base_cols]
    qual_sr = row[qual_cols]
