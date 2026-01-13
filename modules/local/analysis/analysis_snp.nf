@@ -3,6 +3,7 @@ process ANALYSIS_SNP {
     conda '/home/melichv/miniconda3/envs/amplicons'
     publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.csv", mode: 'copy'
     publishDir "${params.output}/${sample}/${target}/analysis", pattern: "*.png", mode: 'copy'
+    publishDir "${params.output}/${sample}/${target}", pattern: "*_stats.txt", mode: 'copy'
 
     input:
         tuple val( target ), val( sample ), path ( bam ), path ( bai ), path ( bed )

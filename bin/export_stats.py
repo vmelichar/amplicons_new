@@ -534,10 +534,10 @@ def get_sankey_all(input,low_clusters,hs_index,hotspots):
 # MISCELLANEOUS
 
 def get_recombo_clusters_names(hs, input):
-    file = f'{input}/barcode01/HS{hs}/analysis/analysis_HS{hs}_perc_counts.csv'
+    file = f'{input}/barcode01/HS{hs}/analysis/analysis_HS{hs}_recombo.csv'
     if os.path.exists(file):
-        df = pd.read_csv(file)
-        names = [i.split('=')[1].replace('_', '_sub') for i in list(df['read'])]
+        df = pd.read_csv(file, sep='\t')
+        names = [i.split('=')[1].split('_')[0] for i in list(df['read'])]
 
         return names
     else:
