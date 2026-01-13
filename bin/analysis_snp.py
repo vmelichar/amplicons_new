@@ -122,8 +122,6 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
 
     # Prepare output
     df = pd.DataFrame(bases)
-    df.to_csv(out_dir + '_test.csv', 
-                   sep=',', index=True)
 
     df_long = pd.pivot_table(df, 
                          index='read', 
@@ -288,6 +286,8 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     df = get_bases(bam, vcf, tbi, positions, output_dir)
 
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1)
+    int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
+    df[int_cols] = df[int_cols].astype(int)
 
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
     df.drop(columns=qual_cols, inplace=True)
