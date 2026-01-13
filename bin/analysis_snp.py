@@ -303,8 +303,8 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     df[int_cols] = df[int_cols].astype(int)
 
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
-    #df.drop(columns=qual_cols, inplace=True)
-    #df.columns = [str(c).split('_')[1] if str(c).startswith('base') else str(c) for c in df.columns]
+    df.drop(columns=qual_cols, inplace=True)
+    df.columns = [str(c).split('_')[1] if str(c).startswith('base') else str(c) for c in df.columns]
 
     get_BP_graph(df, 'perc_B', output_dir, hs)
     get_BP_graph(df, 'perc_N', output_dir, hs)
