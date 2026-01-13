@@ -159,20 +159,33 @@ def get_ratios(row):
    else:
       ratioBP = B / (B + P)
    ratioN = N / SNPs
+   ratioD = D / SNPs
    
    minority_allele = 'P' if P < B else 'B'
 
-   prob_all_correct = 1.0
+   # Calculate separate freq-based penalties
+   s_n = 0.75 * ratioN
+   s_d = 0.8 * ratioD
+
+   # Initial prob incorporating N and D penalties
+   prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
 
    for idx, allele in enumerate(base_sr):
-      if allele == minority_allele or allele in ['N', 'X', 'M', 'D']:
+      if allele in ['N', 'D']:
+        continue
+      if allele == minority_allele or allele in ['X', 'M']:
         q_score = int(qual_sr.iloc[idx])
+        q_factor = 10 ** (-q_score / 10.0)
 
         if allele in ['P', 'B']:
-            s_i = (10 ** (-q_score / 10.0)) / 3.0
-            prob_all_correct *= (1.0 - s_i)
-        else:
-            prob_all_correct *= 0.25
+            s_i = (1 / 3.0) * q_factor
+        if allele == 'X':
+            s_i = 0.75 * q_factor
+        if allele == 'M':
+            s_i = 0.5 * q_factor
+
+        prob_all_correct *= (1.0 - s_i)
+        
    error = 1.0 - prob_all_correct
 
    return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
