@@ -151,7 +151,7 @@ def get_ratios(row):
    M = occurances_dict.get('M', 0)
    D = occurances_dict.get('D', 0)
    dot = occurances_dict.get('.', 0)
-   SNPs = len(row) - dot
+   SNPs = len(base_sr) - dot
    # 1 - B6 strand, 0 - PWD strand
    # should I count others as well?
    if B == 0:
