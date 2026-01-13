@@ -164,8 +164,8 @@ def get_ratios(row):
    minority_allele = 'P' if P < B else 'B'
 
    # Calculate separate freq-based penalties
-   s_n = 0.75 * ratioN
-   s_d = 0.8 * ratioD
+   s_n = 0.75 * ( ratioN ** 3 )
+   s_d = 0.8 * ( ratioD ** 3 )
 
    # Initial prob incorporating N and D penalties
    prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
@@ -185,7 +185,7 @@ def get_ratios(row):
             s_i = 0.5 * q_factor
 
         prob_all_correct *= (1.0 - s_i)
-        
+
    error = 1.0 - prob_all_correct
 
    return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
