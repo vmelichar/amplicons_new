@@ -177,7 +177,7 @@ def get_ratios(row):
             prob_all_correct *= 0.25
    error = 1.0 - prob_all_correct
 
-   return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), B, P, N, X, M, D]) 
+   return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
 
 def create_barplot(percentages, counts, out_dir, chimera_perc, chimeras, hs):
     plt.figure(figsize=(7, 5))
@@ -229,12 +229,14 @@ def get_BP_graph(df, col, out_dir, hs):
 
 def get_tables(df, out_dir):
     f_stats = open(out_dir + '_stats.txt', 'w')
-    print(f'Total seqs: {len(df)}\n', file=f_stats)
-    print(f'Error seqs: {len(df[df.Err > 0.05])}\n', file=f_stats)
-    print(f'High confidence seqs: {len(df[df.Err <= 0.05])}\n', file=f_stats)
+    print(f'Total seqs: {len(df)}', file=f_stats)
+    print(f'Error seqs: {len(df[df.Err > 0.05])}', file=f_stats)
+    print(f'High confidence seqs: {len(df[df.Err <= 0.05])}', file=f_stats)
+
+    df[df.Err > 0.05].to_csv(out_dir + '_errors.csv', sep='\t', index=True)
 
     # Filter for Error threshold
-    df = df[df.Err < 0.05]
+    df = df[df.Err <= 0.05]
 
     #df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3)].to_csv(out_dir + '_perc_counts.csv', 
     #            sep=',', index=True)
@@ -248,14 +250,14 @@ def get_tables(df, out_dir):
     #df[df.perc_B.between(0.8, 1, "neither")].to_csv(out_dir + '_perc_counts_from8.csv',
     #            sep=',', index=True)
     
-    df[df.perc_B == 0].to_csv(out_dir + '_allPWD.csv', sep=',', index=True)
-    print(f'PWD seqs: {len(df[df.perc_B == 0])}\n', file=f_stats)
+    df[df.perc_B == 0].to_csv(out_dir + '_allPWD.csv', sep='\t', index=True)
+    print(f'PWD seqs: {len(df[df.perc_B == 0])}', file=f_stats)
 
-    df[df.perc_B == 1].to_csv(out_dir + '_allB6.csv', sep=',', index=True)
-    print(f'B6 seqs: {len(df[df.perc_B == 1])}\n', file=f_stats)
+    df[df.perc_B == 1].to_csv(out_dir + '_allB6.csv', sep='\t', index=True)
+    print(f'B6 seqs: {len(df[df.perc_B == 1])}', file=f_stats)
 
-    df[df.perc_B.between(0, 1, "neither")].to_csv(out_dir + '_recombo.csv', sep=',', index=True)
-    print(f'Recombo seqs: {len(df[df.perc_B.between(0, 1, "neither")])}\n', file=f_stats)
+    df[df.perc_B.between(0, 1, "neither")].to_csv(out_dir + '_recombo.csv', sep='\t', index=True)
+    print(f'Recombo seqs: {len(df[df.perc_B.between(0, 1, "neither")])}', file=f_stats)
 
     f_stats.close()
 
