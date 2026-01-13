@@ -76,7 +76,7 @@ def find_base_in_alignment(alignment: pysam.AlignedSegment,
                 base = seq[idx_q + idx_r - 1]
 
                 quality = alignment.query_qualities[idx_q + idx_r - 1]
-                if quality >= 4:
+                if quality >= 20:
                     return [base, quality]
                 else:
                     return ["N", quality]
