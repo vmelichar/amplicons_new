@@ -168,7 +168,7 @@ def get_ratios(row):
 
    for idx, allele in enumerate(base_sr):
       if allele == minority_allele or allele in ['N', 'X', 'M', 'D']:
-        q_score = int(qual_sr[idx])
+        q_score = int(qual_sr.iloc[idx])
 
         if allele in ['P', 'B']:
             s_i = (10 ** (-q_score / 10.0)) / 3.0
