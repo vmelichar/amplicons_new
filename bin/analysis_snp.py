@@ -154,7 +154,7 @@ def get_penalties(bam, B_seqs):
         if read.query_name not in B_seqs:
             continue
         else:
-            cigar = read.cigar_tuples
+            cigar = read.cigartuples
             length = read.query_alignment_length
             quals = read.query_qualities
 
