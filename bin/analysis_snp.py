@@ -79,7 +79,7 @@ def find_base_in_alignment(alignment: pysam.AlignedSegment,
                 if quality >= 20:
                     return [base, quality]
                 else:
-                    return ["N", quality]
+                    return [base, quality]
             else:
                 # position has been deleted
                 return ["D", 0]
@@ -212,6 +212,7 @@ def get_ratios(row, D_pen, N_pen):
     ratioD = D / SNPs
    
     minority_allele = 'P' if P < B else 'B'
+    majority_allele = 'P' if P >= B else 'B'
 
 #    # Calculate separate freq-based penalties
 #    s_n = 0.75 * ( ratioN ** 3 )
@@ -246,12 +247,14 @@ def get_ratios(row, D_pen, N_pen):
     for idx, allele in enumerate(base_sr):
         if allele in ['N', 'D']:
             continue
-        if allele == minority_allele or allele == 'X':
+        if allele in ['P', 'B', 'X']:
             q_score = int(qual_sr.iloc[idx])
             q_factor = 10 ** (-q_score / 10.0)
 
-            if allele in ['P', 'B']:
+            if allele == minority_allele:
                 s_i = (1 / 3.0) * q_factor
+            if allele == majority_allele:
+                s_i = q_factor
             elif allele == 'X':
                 s_i = (2 / 3.0) * q_factor
             else:
