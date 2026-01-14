@@ -252,10 +252,10 @@ def get_ratios(row, D_pen, N_pen):
 
             if allele in ['P', 'B']:
                 s_i = (1 / 3.0) * q_factor
-            if allele == 'X':
+            elif allele == 'X':
                 s_i = (2 / 3.0) * q_factor
             else:
-                print(f'Unknown allele: {allele}')
+                print(f'Unknown allele: {allele}, minor {minority_allele}, q_score {q_score}')
 
             prob_all_correct *= (1.0 - s_i)
 
