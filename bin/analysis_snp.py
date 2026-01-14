@@ -257,7 +257,7 @@ def get_ratios(row, D_pen, N_pen):
             else:
                 print(f'Unknown allele: {allele}')
 
-        prob_all_correct *= (1.0 - s_i)
+            prob_all_correct *= (1.0 - s_i)
 
     error = 1.0 - prob_all_correct
 
