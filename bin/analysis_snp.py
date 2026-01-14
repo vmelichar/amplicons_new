@@ -96,7 +96,13 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
             chrom, pos = line.strip().split()
             pos = int(pos)
 
-            for rec in vcf_snps.fetch('chr' + chrom, pos-1, pos):
+            vcf_records = vcf_snps.fetch('chr' + chrom, pos-1, pos)
+            if len(vcf_records) != 1:
+                print(f'VCF records for pos {chrom}:{pos} = {len(vcf_records)}')
+
+            for rec in vcf_records:
+                if len(rec.alleles) != 2:
+                    print(f'More Alt Alleles for {chrom}:{pos} -- {rec.alleles}')
                 ref, alt = rec.alleles[0], rec.alleles[1]
 
             for read in bam.fetch('chr' + chrom, pos-1, pos+1):
@@ -108,8 +114,6 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         base = "B"
                     elif base == alt:
                         base = "P"
-                    elif base.islower():
-                        base == 'M'
                     elif base in ['A', 'C', 'T', 'G']:
                         base = 'X'
                     bases.append({
@@ -118,7 +122,9 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         "base": base,
                         "qual": qual
                         })
-                else: continue
+                else:
+                    print(f'Unknown assigments in the sequence: {base}')
+                    continue
 
     # Prepare output
     df = pd.DataFrame(bases)
@@ -132,7 +138,46 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
     df_long.columns = [f"{level0}_{level1}" for level0, level1 in df_long.columns]
     df_long.to_csv(out_dir + '_counts.csv', 
                    sep=',', index=True)
-    return df_long
+
+    B_seqs = filtered_df = df_long.loc[(df_long.filter(regex='^base') == 'B').all(axis=1)].index.tolist()
+    
+    return df_long, B_seqs
+
+
+def get_penalties(bam, B_seqs):
+    total_len = 0
+    D_len = 0
+    N_len = 0
+
+    for read in bam.fetch():
+        if read.query_name not in B_seqs:
+            continue
+        else:
+            cigar = read.cigar_tuples
+            length = read.query_alignment_length
+            quals = read.query_qualities
+
+            D = 0
+            for op, l in cigar:
+                if op == 2:
+                    D += l
+            
+            N = 0
+            for q in quals:
+                if q > 20:
+                    N += 1
+
+            total_len += length
+            D_len += D
+            N_len += N
+    
+    D_pen = D_len / total_len
+    N_pen = N_len / total_len
+
+    print(f'D penalty: {D_pen}')
+    print(f'N penalty: {N_pen}')
+
+    return D_pen, N_pen
 
 
 def get_ratios(row):
@@ -296,7 +341,9 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     
     bam = pysam.AlignmentFile(input_bam, "rb", index_filename=input_bai)
 
-    df = get_bases(bam, vcf, tbi, positions, output_dir)
+    df, B_seqs = get_bases(bam, vcf, tbi, positions, output_dir)
+
+    D_pen, N_pen = get_penalties(bam, B_seqs)
 
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1)
     int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
