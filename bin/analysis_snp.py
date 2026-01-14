@@ -96,8 +96,8 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
             chrom, pos = line.strip().split()
             pos = int(pos)
 
-            vcf_records = vcf_snps.fetch('chr' + chrom, pos-1, pos)
-            if len(list(vcf_records)) != 1:
+            vcf_records = list(vcf_snps.fetch('chr' + chrom, pos-1, pos))
+            if len(vcf_records) != 1:
                 print(f'VCF records for pos {chrom}:{pos} = {len(vcf_records)}')
 
             for rec in vcf_records:
