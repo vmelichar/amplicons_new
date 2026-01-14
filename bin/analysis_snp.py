@@ -163,9 +163,11 @@ def get_penalties(bam, B_seqs):
                 if op == 2:
                     D += l
             
+            frontS = cigar[0][1] if cigar[0][0] == '4' else 0
+            rearS = cigar[-1][1] if cigar[-1][0] == '4' else None
             N = 0
-            for q in quals:
-                if q > 20:
+            for q in quals[frontS:rearS]:
+                if q < 20:
                     N += 1
 
             total_len += length
@@ -175,9 +177,10 @@ def get_penalties(bam, B_seqs):
     D_pen = D_len / total_len
     N_pen = N_len / total_len
 
-    print(f'T/D/N - {total_len}/{D_len}/{N_len}')
-    print(f'D penalty: {D_pen}')
-    print(f'N penalty: {N_pen}')
+    print(f'\tNumber of seqs contr to penalties: {len(B_seqs)}')
+    print(f'\tT/D/N - {total_len}/{D_len}/{N_len}')
+    print(f'\tD penalty: {D_pen}')
+    print(f'\tN penalty: {N_pen}')
 
     return D_pen, N_pen
 
