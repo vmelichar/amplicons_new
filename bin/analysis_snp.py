@@ -116,6 +116,8 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         base = "P"
                     elif base in ['A', 'C', 'T', 'G']:
                         base = 'X'
+                    if base not in ['B', 'P', 'X', 'N', 'D']:
+                        print(f'Unknown assigments in the sequence: {base}')
                     bases.append({
                         "read": read.query_name,
                         "position": f'{chrom}:{pos}',
@@ -123,7 +125,6 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         "qual": qual
                         })
                 else:
-                    print(f'Unknown assigments in the sequence: {base}')
                     continue
 
     # Prepare output
