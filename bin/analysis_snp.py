@@ -175,6 +175,7 @@ def get_penalties(bam, B_seqs):
     D_pen = D_len / total_len
     N_pen = N_len / total_len
 
+    print(f'T/D/N - {total_len}/{D_len}/{N_len}')
     print(f'D penalty: {D_pen}')
     print(f'N penalty: {N_pen}')
 
@@ -340,10 +341,13 @@ def get_cluster_type(df, out_dir):
 
 def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     
+    print('Reading BAM...')
     bam = pysam.AlignmentFile(input_bam, "rb", index_filename=input_bai)
 
+    print('Getting bases...')
     df, B_seqs = get_bases(bam, vcf, tbi, positions, output_dir)
 
+    print('Getting penalties...')
     D_pen, N_pen = get_penalties(bam, B_seqs)
 
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1)
