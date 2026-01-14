@@ -185,60 +185,81 @@ def get_penalties(bam, B_seqs):
     return D_pen, N_pen
 
 
-def get_ratios(row):
-   base_cols = [c for c in row.index if str(c).startswith('base')]
-   qual_cols = [c for c in row.index if str(c).startswith('qual')]
+def get_ratios(row, D_pen, N_pen):
+    base_cols = [c for c in row.index if str(c).startswith('base')]
+    qual_cols = [c for c in row.index if str(c).startswith('qual')]
 
-   base_sr = row[base_cols]
-   qual_sr = row[qual_cols]
+    base_sr = row[base_cols]
+    qual_sr = row[qual_cols]
 
-   occurances_dict = base_sr.value_counts().to_dict()
+    occurances_dict = base_sr.value_counts().to_dict()
    
-   B = occurances_dict.get('B', 0)
-   P = occurances_dict.get('P', 0)
-   N = occurances_dict.get('N', 0)
-   X = occurances_dict.get('X', 0)
-   M = occurances_dict.get('M', 0)
-   D = occurances_dict.get('D', 0)
-   dot = occurances_dict.get('.', 0)
-   SNPs = len(base_sr) - dot
-   # 1 - B6 strand, 0 - PWD strand
-   # should I count others as well?
-   if B == 0:
-      ratioBP = 0
-   else:
-      ratioBP = B / (B + P)
-   ratioN = N / SNPs
-   ratioD = D / SNPs
+    B = occurances_dict.get('B', 0)
+    P = occurances_dict.get('P', 0)
+    N = occurances_dict.get('N', 0)
+    X = occurances_dict.get('X', 0)
+    M = occurances_dict.get('M', 0)
+    D = occurances_dict.get('D', 0)
+    dot = occurances_dict.get('.', 0)
+    SNPs = len(base_sr) - dot
+    # 1 - B6 strand, 0 - PWD strand
+    # should I count others as well?
+    if B == 0:
+        ratioBP = 0
+    else:
+        ratioBP = B / (B + P)
+    ratioN = N / SNPs
+    ratioD = D / SNPs
    
-   minority_allele = 'P' if P < B else 'B'
+    minority_allele = 'P' if P < B else 'B'
 
-   # Calculate separate freq-based penalties
-   s_n = 0.75 * ( ratioN ** 3 )
-   s_d = 0.8 * ( ratioD ** 3 )
+#    # Calculate separate freq-based penalties
+#    s_n = 0.75 * ( ratioN ** 3 )
+#    s_d = 0.8 * ( ratioD ** 3 )
 
-   # Initial prob incorporating N and D penalties
-   prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
+#    # Initial prob incorporating N and D penalties
+#    prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
 
-   for idx, allele in enumerate(base_sr):
-      if allele in ['N', 'D']:
-        continue
-      if allele == minority_allele or allele in ['X', 'M']:
-        q_score = int(qual_sr.iloc[idx])
-        q_factor = 10 ** (-q_score / 10.0)
+#    for idx, allele in enumerate(base_sr):
+#       if allele in ['N', 'D']:
+#         continue
+#       if allele == minority_allele or allele in ['X', 'M']:
+#         q_score = int(qual_sr.iloc[idx])
+#         q_factor = 10 ** (-q_score / 10.0)
 
-        if allele in ['P', 'B']:
-            s_i = (1 / 3.0) * q_factor
-        if allele == 'X':
-            s_i = 0.75 * q_factor
-        if allele == 'M':
-            s_i = 0.5 * q_factor
+#         if allele in ['P', 'B']:
+#             s_i = (1 / 3.0) * q_factor
+#         if allele == 'X':
+#             s_i = 0.75 * q_factor
+#         if allele == 'M':
+#             s_i = 0.5 * q_factor
+
+#         prob_all_correct *= (1.0 - s_i)
+
+    # Calc separate D and N penalties
+    s_n = N_pen
+    s_d = D_pen
+
+    # Initial prob incorporating N and D penalties
+    prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
+
+    for idx, allele in enumerate(base_sr):
+        if allele in ['N', 'D']:
+            continue
+        if allele == minority_allele or allele == 'X':
+            q_score = int(qual_sr.iloc[idx])
+            q_factor = 10 ** (-q_score / 10.0)
+
+            if allele in ['P', 'B']:
+                s_i = (1 / 3.0) * q_factor
+            if allele == 'X':
+                s_i = (2 / 3.0) * q_factor
 
         prob_all_correct *= (1.0 - s_i)
 
-   error = 1.0 - prob_all_correct
+    error = 1.0 - prob_all_correct
 
-   return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
+    return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
 
 def create_barplot(percentages, counts, out_dir, chimera_perc, chimeras, hs):
     plt.figure(figsize=(7, 5))
