@@ -196,7 +196,7 @@ def get_ratios(row, D_pen, N_pen):
    
     B = occurances_dict.get('B', 0)
     P = occurances_dict.get('P', 0)
-    N = occurances_dict.get('N', 0)
+    N = (qual_sr < 20).sum()
     X = occurances_dict.get('X', 0)
     M = occurances_dict.get('M', 0)
     D = occurances_dict.get('D', 0)
@@ -265,6 +265,7 @@ def get_ratios(row, D_pen, N_pen):
     error = 1.0 - prob_all_correct
 
     return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 3), int(B), int(P), int(N), int(X), int(M), int(D)]) 
+
 
 def create_barplot(percentages, counts, out_dir, chimera_perc, chimeras, hs):
     plt.figure(figsize=(7, 5))
@@ -378,9 +379,13 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
         df[qual_col] = pd.to_numeric(df[qual_col], errors='coerce')
         df.loc[df[qual_col] < 20, base_col] = 'N'
 
+    base_cols = [c for c in df.columns if str(c).startswith('base')]
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
+    df['assign'] = df[base_cols].astype(str).agg(''.join, axis=1)
+    df['quals'] = df[qual_cols].astype(str).agg(';'.join, axis=1)
+    df.drop(columns=base_cols, inplace=True)
     df.drop(columns=qual_cols, inplace=True)
-    df.columns = [str(c).split('_')[1] if str(c).startswith('base') else str(c) for c in df.columns]
+    #df.columns = [str(c).split('_')[1] if str(c).startswith('base') else str(c) for c in df.columns]
 
     get_BP_graph(df, 'perc_B', output_dir, hs)
     get_BP_graph(df, 'perc_N', output_dir, hs)
