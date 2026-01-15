@@ -324,18 +324,6 @@ def get_tables(df, out_dir):
 
     # Filter for Error threshold
     df = df[df.Err <= 0.05]
-
-    #df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N <= 0.3)].to_csv(out_dir + '_perc_counts.csv', 
-    #            sep=',', index=True)
-
-    #df[df.perc_B.between(0.2, 0.8, "both") & (df.perc_N > 0.3)].to_csv(out_dir + '_perc_counts_highN.csv', 
-    #            sep=',', index=True)
-
-    #df[df.perc_B.between(0, 0.2, "neither")].to_csv(out_dir + '_perc_counts_upto2.csv',
-    #            sep=',', index=True)
-
-    #df[df.perc_B.between(0.8, 1, "neither")].to_csv(out_dir + '_perc_counts_from8.csv',
-    #            sep=',', index=True)
     
     df[df.perc_B == 0].to_csv(out_dir + '_allPWD.csv', sep='\t', index=True)
     print(f'PWD seqs: {len(df[df.perc_B == 0])}', file=f_stats)
@@ -382,6 +370,12 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1, args=(D_pen, N_pen))
     int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
     df[int_cols] = df[int_cols].astype(int)
+
+    positions = [col.split('_')[1] for col in df.columns if col.startswith('base_')]
+    for pos in positions:
+        base_col = f'base_{pos}'
+        qual_col = f'qual_{pos}'
+        df.loc[df[qual_col] < 20, base_col] = 'N'
 
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
     df.drop(columns=qual_cols, inplace=True)
