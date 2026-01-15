@@ -122,7 +122,7 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
                         "read": read.query_name,
                         "position": f'{chrom}:{pos}',
                         "base": base,
-                        "qual": int(qual)
+                        "qual": qual
                         })
                 else:
                     continue
