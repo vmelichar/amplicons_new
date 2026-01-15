@@ -375,6 +375,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     for pos in positions:
         base_col = f'base_{pos}'
         qual_col = f'qual_{pos}'
+        df[qual_col] = pd.to_numeric(df[qual_col], errors='coerce')
         df.loc[df[qual_col] < 20, base_col] = 'N'
 
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
