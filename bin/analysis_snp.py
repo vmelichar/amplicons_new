@@ -190,7 +190,7 @@ def get_ratios(row, D_pen, N_pen):
     qual_cols = [c for c in row.index if str(c).startswith('qual')]
 
     base_sr = row[base_cols]
-    qual_sr = row[qual_cols]
+    qual_sr = pd.to_numeric(row[qual_cols], errors='coerce')
 
     occurances_dict = base_sr.value_counts().to_dict()
    
