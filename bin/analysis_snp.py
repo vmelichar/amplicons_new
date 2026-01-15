@@ -381,7 +381,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
 
     base_cols = [c for c in df.columns if str(c).startswith('base')]
     qual_cols = [c for c in df.columns if str(c).startswith('qual')]
-    df[qual_cols] = df[qual_cols].astype(int)
+    df[qual_cols] = df[qual_cols].fillna(0).astype(int)
     df['assign'] = df[base_cols].astype(str).agg(''.join, axis=1)
     df['quals'] = df[qual_cols].astype(str).agg(';'.join, axis=1)
     df.drop(columns=base_cols, inplace=True)
