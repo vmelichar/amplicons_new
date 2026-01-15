@@ -82,7 +82,7 @@ def find_base_in_alignment(alignment: pysam.AlignedSegment,
                     return [base, quality]
             else:
                 # position has been deleted
-                return ["D", 0]
+                return ["D", None]
 
 def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
     # Load VCF file
