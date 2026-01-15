@@ -253,7 +253,7 @@ def get_ratios(row, D_pen, N_pen):
 
             if allele == minority_allele:
                 s_i = (1 / 3.0) * q_factor
-            if allele == majority_allele:
+            elif allele == majority_allele:
                 s_i = q_factor
             elif allele == 'X':
                 s_i = (2 / 3.0) * q_factor
