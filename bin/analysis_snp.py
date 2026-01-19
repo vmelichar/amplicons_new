@@ -181,7 +181,7 @@ def get_ratios(row, D_pen):
 
     base_sr = row[base_cols]
     qual_sr = pd.to_numeric(row[qual_cols], errors='coerce')
-    base_sr_masked = base_sr[(qual_sr >= 20)]
+    base_sr_masked = base_sr[(qual_sr >= 20).values()]
 
     occurances_dict_ori = base_sr.value_counts().to_dict()
     occurances_dict_masked = base_sr_masked.value_counts().to_dict()
@@ -242,7 +242,7 @@ def get_ratios(row, D_pen):
 
     error = 1.0 - prob_all_correct
 
-    return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 5), int(B), int(P), int(N), int(X), int(M), int(D)]) 
+    return pd.Series([round(ratioBP,2), round(ratioN,2), round(error, 5), int(B), int(P), int(Nm), int(X), int(D)]) 
 
 
 def create_barplot(percentages, counts, out_dir, chimera_perc, chimeras, hs):
