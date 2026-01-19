@@ -203,6 +203,7 @@ def get_ratios(row, D_pen):
     dotm = occurances_dict_masked.get('.', 0)
     if Bm + Pm + Xm + Dm + Nm != SNPs:
         print(f'WARNING...masked occ not equal {Bm + Pm + Xm + Dm + Nm} != {SNPs}')
+        print(f'Bm {Bm} Pm {Pm} Xm {Xm} Dm {Dm} Nm {Nm} . {dotm} ---- B {B} P {P} X {X} D {D} . {dot} --- len {SNPs}')
     # 1 - B6 strand, 0 - PWD strand
     if Bm == 0:
         ratioBP = 0
