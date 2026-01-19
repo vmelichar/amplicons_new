@@ -181,7 +181,7 @@ def get_ratios(row, D_pen):
 
     base_sr = row[base_cols]
     qual_sr = pd.to_numeric(row[qual_cols], errors='coerce')
-    base_sr_masked = base_sr[(qual_sr >= 20).values()]
+    base_sr_masked = base_sr[(qual_sr >= 20).values]
 
     occurances_dict_ori = base_sr.value_counts().to_dict()
     occurances_dict_masked = base_sr_masked.value_counts().to_dict()
