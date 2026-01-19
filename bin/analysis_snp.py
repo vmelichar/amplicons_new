@@ -148,7 +148,6 @@ def get_bases(bam, vcf_file, tbi_file, pos_file,out_dir):
 def get_penalties(bam, B_seqs):
     total_len = 0
     D_len = 0
-    N_len = 0
 
     for read in bam.fetch():
         if read.query_name not in B_seqs:
@@ -158,96 +157,73 @@ def get_penalties(bam, B_seqs):
         else:
             cigar = read.cigartuples
             length = read.query_alignment_length
-            quals = read.query_qualities
 
             D = 0
             for op, l in cigar:
                 if op == 2:
                     D += l
-            
-            frontS = cigar[0][1] if cigar[0][0] == '4' else 0
-            rearS = cigar[-1][1] if cigar[-1][0] == '4' else None
-            N = 0
-            for q in quals[frontS:rearS]:
-                if q < 20:
-                    N += 1
 
             total_len += length
             D_len += D
-            N_len += N
     
     D_pen = D_len / total_len
-    N_pen = N_len / total_len
 
     print(f'\tNumber of seqs contr to penalties: {len(B_seqs)}')
-    print(f'\tT/D/N - {total_len}/{D_len}/{N_len}')
+    print(f'\tT/D - {total_len}/{D_len}')
     print(f'\tD penalty: {D_pen}')
-    print(f'\tN penalty: {N_pen}')
 
-    return D_pen, N_pen
+    return D_pen
 
 
-def get_ratios(row, D_pen, N_pen):
+def get_ratios(row, D_pen):
     base_cols = [c for c in row.index if str(c).startswith('base')]
     qual_cols = [c for c in row.index if str(c).startswith('qual')]
 
     base_sr = row[base_cols]
     qual_sr = pd.to_numeric(row[qual_cols], errors='coerce')
+    base_sr_masked = base_sr[(qual_sr >= 20)]
 
-    occurances_dict = base_sr.value_counts().to_dict()
-   
-    B = occurances_dict.get('B', 0)
-    P = occurances_dict.get('P', 0)
-    N = (qual_sr < 20).sum()
-    X = occurances_dict.get('X', 0)
-    M = occurances_dict.get('M', 0)
-    D = occurances_dict.get('D', 0)
-    dot = occurances_dict.get('.', 0)
+    occurances_dict_ori = base_sr.value_counts().to_dict()
+    occurances_dict_masked = base_sr_masked.value_counts().to_dict()
+
+    # original occurences
+    B = occurances_dict_ori.get('B', 0)
+    P = occurances_dict_ori.get('P', 0)
+    X = occurances_dict_ori.get('X', 0)
+    D = occurances_dict_ori.get('D', 0)
+    dot = occurances_dict_ori.get('.', 0)
     SNPs = len(base_sr) - dot
+
+    # masked occurences
+    Bm = occurances_dict_masked.get('B', 0)
+    Pm = occurances_dict_masked.get('P', 0)
+    Xm = occurances_dict_masked.get('X', 0)
+    Dm = occurances_dict_masked.get('D', 0)
+    Nm = (qual_sr < 20).sum()
+    dotm = occurances_dict_masked.get('.', 0)
+    if Bm + Pm + Xm + Dm + Nm != SNPs:
+        print(f'WARNING...masked occ not equal {Bm + Pm + Xm + Dm + Nm} != {SNPs}')
     # 1 - B6 strand, 0 - PWD strand
-    # should I count others as well?
-    if B == 0:
+    if Bm == 0:
         ratioBP = 0
+    elif Pm == 0:
+        ratioBP = 1
     else:
-        ratioBP = B / (B + P)
-    ratioN = N / SNPs
-    ratioD = D / SNPs
+        ratioBP = Bm / (Bm + Pm)
+    ratioN = Nm / SNPs
+    ratioD = Dm / SNPs
    
     minority_allele = 'P' if P < B else 'B'
     majority_allele = 'P' if P >= B else 'B'
 
-#    # Calculate separate freq-based penalties
-#    s_n = 0.75 * ( ratioN ** 3 )
-#    s_d = 0.8 * ( ratioD ** 3 )
-
-#    # Initial prob incorporating N and D penalties
-#    prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
-
-#    for idx, allele in enumerate(base_sr):
-#       if allele in ['N', 'D']:
-#         continue
-#       if allele == minority_allele or allele in ['X', 'M']:
-#         q_score = int(qual_sr.iloc[idx])
-#         q_factor = 10 ** (-q_score / 10.0)
-
-#         if allele in ['P', 'B']:
-#             s_i = (1 / 3.0) * q_factor
-#         if allele == 'X':
-#             s_i = 0.75 * q_factor
-#         if allele == 'M':
-#             s_i = 0.5 * q_factor
-
-#         prob_all_correct *= (1.0 - s_i)
-
     # Calc separate D and N penalties
-    s_n = N_pen
     s_d = D_pen
 
     # Initial prob incorporating N and D penalties
-    prob_all_correct = ((1.0 - s_n) ** N) * ((1.0 - s_d) ** D)
+    prob_all_correct = ((1.0 - s_d) ** D)
 
     for idx, allele in enumerate(base_sr):
-        if allele in ['N', 'D']:
+        if allele == 'D':
             continue
         if allele in ['P', 'B', 'X']:
             q_score = int(qual_sr.iloc[idx])
@@ -368,9 +344,9 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     df, B_seqs = get_bases(bam, vcf, tbi, positions, output_dir)
 
     print('Getting penalties...')
-    D_pen, N_pen = get_penalties(bam, B_seqs)
+    D_pen = get_penalties(bam, B_seqs)
 
-    df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1, args=(D_pen, N_pen))
+    df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1, args=(D_pen))
     int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
     df[int_cols] = df[int_cols].astype(int)
 
