@@ -346,7 +346,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     print('Getting penalties...')
     D_pen = get_penalties(bam, B_seqs)
 
-    df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1, args=(D_pen))
+    df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cM', 'cD']] = df.apply(get_ratios, axis=1, args=[D_pen])
     int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
     df[int_cols] = df[int_cols].astype(int)
 
