@@ -153,6 +153,8 @@ def get_penalties(bam, B_seqs):
     for read in bam.fetch():
         if read.query_name not in B_seqs:
             continue
+        if read.is_secondary or read.is_supplementary:
+            continue
         else:
             cigar = read.cigartuples
             length = read.query_alignment_length
