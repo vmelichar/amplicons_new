@@ -198,7 +198,7 @@ def get_ratios(row, D_pen):
     Bm = occurances_dict_masked.get('B', 0)
     Pm = occurances_dict_masked.get('P', 0)
     Xm = occurances_dict_masked.get('X', 0)
-    Dm = occurances_dict_masked.get('D', 0)
+    Dm = D
     Nm = (qual_sr < 20).sum()
     dotm = occurances_dict_masked.get('.', 0)
     if Bm + Pm + Xm + Dm + Nm != SNPs:
@@ -348,7 +348,7 @@ def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
     D_pen = get_penalties(bam, B_seqs)
 
     df[['perc_B', 'perc_N', 'Err', 'cB', 'cP', 'cN', 'cX', 'cD']] = df.apply(get_ratios, axis=1, args=[D_pen])
-    int_cols = ['cB', 'cP', 'cN', 'cX', 'cM', 'cD']
+    int_cols = ['cB', 'cP', 'cN', 'cX', 'cD']
     df[int_cols] = df[int_cols].astype(int)
 
     positions = [col.split('_')[1] for col in df.columns if col.startswith('base_')]
