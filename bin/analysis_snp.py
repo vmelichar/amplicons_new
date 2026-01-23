@@ -294,28 +294,55 @@ def get_BP_graph(df, col, out_dir, hs):
     print('Plotting lineplot...')
     create_lineplot(percentage_counts, col, out_dir, hs)
 
+# Logic to separate High and Low effect
+def check_high_effect(row):
+    seq = row['assign']
+    count_p = seq.count('P')
+    count_b = seq.count('B')
+    
+    # Determine minority letter (default to 'P' if equal)
+    minority_char = 'P' if count_p <= count_b else 'B'
+    
+    # Check if the minority letter appears twice in a row
+    substring = minority_char + minority_char
+    return substring in seq
+
 def get_tables(df, out_dir):
     f_stats = open(out_dir + '_stats.txt', 'w')
     print(f'Total seqs: {len(df)}', file=f_stats)
     print(f'Error seqs: {len(df[df.Err > 0.05])}', file=f_stats)
     print(f'High confidence seqs: {len(df[df.Err <= 0.05])}', file=f_stats)
 
+    # Export errors and filter
     df[df.Err > 0.05].to_csv(out_dir + '_errors.csv', sep='\t', index=True)
-
-    # Filter for Error threshold
     df = df[df.Err <= 0.05]
     
+    # Export Pure Strains
     df[df.perc_B == 0].to_csv(out_dir + '_allPWD.csv', sep='\t', index=True)
     print(f'PWD seqs: {len(df[df.perc_B == 0])}', file=f_stats)
 
     df[df.perc_B == 1].to_csv(out_dir + '_allB6.csv', sep='\t', index=True)
     print(f'B6 seqs: {len(df[df.perc_B == 1])}', file=f_stats)
 
-    df[df.perc_B.between(0, 1, "neither")].to_csv(out_dir + '_recombo.csv', sep='\t', index=True)
-    print(f'Recombo seqs: {len(df[df.perc_B.between(0, 1, "neither")])}', file=f_stats)
+    # Isolate Recombination sequences
+    df_recombo = df[df.perc_B.between(0, 1, "neither")].copy()
+
+    # Apply the check and split
+    df_recombo['is_high'] = df_recombo.apply(check_high_effect, axis=1)
+    
+    high_effect = df_recombo[df_recombo['is_high']]
+    low_effect = df_recombo[~df_recombo['is_high']]
+
+    # Export Recombination files
+    high_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_high.csv', sep='\t', index=True)
+    low_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_low.csv', sep='\t', index=True)
+    
+    print(f'Recombo High effect: {len(high_effect)}', file=f_stats)
+    print(f'Recombo Low effect: {len(low_effect)}', file=f_stats)
 
     f_stats.close()
 
+    # Export sequence index lists for Pure Strains
     with open(out_dir + '_seqs_PWD.txt', 'w') as pwd_file:
         for name in list(df[df.perc_B == 0].index):
             print(name, file=pwd_file)
@@ -325,15 +352,32 @@ def get_tables(df, out_dir):
             print(name, file=b6_file)
 
 def get_cluster_type(df, out_dir):
-    df['seq_type'] = 'X'
+    # 1. Determine High/Low effect status first
+    df['is_high'] = df.apply(check_high_effect, axis=1)
+
+    # 2. Initialize the type column
+    df['seq_type'] = 'Unknown'
+
+    # 3. Apply logic using .loc for vectorized assignment
+    # Low Confidence
     df.loc[df.Err > 0.05, 'seq_type'] = 'Low_Confidence'
+    
+    # Pure Strains
     df.loc[(df.Err <= 0.05) & (df.perc_B == 1), 'seq_type'] = 'Complete_B6'
     df.loc[(df.Err <= 0.05) & (df.perc_B == 0), 'seq_type'] = 'Complete_PWD'
-    df.loc[(df.Err <= 0.05) & (df.perc_B.between(0, 1, 'neither')), 'seq_type'] = 'Recombo'
 
-    df.index = df.index.map(lambda x: x.split('=')[1].split('_')[0])  # Simplify cluster names
+    # Recombinants (Filtering for those between 0 and 1)
+    recombo_mask = (df.Err <= 0.05) & (df.perc_B.between(0, 1, inclusive='neither'))
+    
+    df.loc[recombo_mask & (df.is_high), 'seq_type'] = 'Recombo_HighEff'
+    df.loc[recombo_mask & (~df.is_high), 'seq_type'] = 'Recombo_LowEff'
 
-    df['seq_type'].to_csv(out_dir + '_cluster_types.tsv', sep='\t', index=True)                                    
+    # 4. Clean up the index
+    # Note: Ensure the split logic matches your index format (e.g., "ID=123_abc")
+    df.index = df.index.map(lambda x: str(x).split('=')[1].split('_')[0])
+
+    # 5. Export results
+    df['seq_type'].to_csv(out_dir + '_cluster_types.tsv', sep='\t', index=True)
 
 
 def run_pipeline(hs, input_bam, input_bai, vcf, tbi, positions, output_dir):
