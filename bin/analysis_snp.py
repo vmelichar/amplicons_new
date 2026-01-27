@@ -330,6 +330,10 @@ def get_tables(df, out_dir):
     if len(df_recombo.index) == 0:
         print(f'Recombo High effect: 0', file=f_stats)
         print(f'Recombo Low effect: 0', file=f_stats)
+        
+        df_recombo.to_csv(out_dir + '_recombo_high.csv', sep='\t', index=True)
+        df_recombo.to_csv(out_dir + '_recombo_low.csv', sep='\t', index=True)
+        
     else:
         # Apply the check and split
         df_recombo['is_high'] = df_recombo.apply(check_high_effect, axis=1)
