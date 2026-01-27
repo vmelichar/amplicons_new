@@ -327,18 +327,22 @@ def get_tables(df, out_dir):
     # Isolate Recombination sequences
     df_recombo = df[df.perc_B.between(0, 1, "neither")].copy()
 
-    # Apply the check and split
-    df_recombo['is_high'] = df_recombo.apply(check_high_effect, axis=1)
+    if len(df_recombo.index) == 0:
+        print(f'Recombo High effect: 0', file=f_stats)
+        print(f'Recombo Low effect: 0', file=f_stats)
+    else:
+        # Apply the check and split
+        df_recombo['is_high'] = df_recombo.apply(check_high_effect, axis=1)
     
-    high_effect = df_recombo[df_recombo['is_high']]
-    low_effect = df_recombo[~df_recombo['is_high']]
+        high_effect = df_recombo[df_recombo['is_high']]
+        low_effect = df_recombo[~df_recombo['is_high']]
 
-    # Export Recombination files
-    high_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_high.csv', sep='\t', index=True)
-    low_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_low.csv', sep='\t', index=True)
+        # Export Recombination files
+        high_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_high.csv', sep='\t', index=True)
+        low_effect.drop(columns=['is_high']).to_csv(out_dir + '_recombo_low.csv', sep='\t', index=True)
     
-    print(f'Recombo High effect: {len(high_effect)}', file=f_stats)
-    print(f'Recombo Low effect: {len(low_effect)}', file=f_stats)
+        print(f'Recombo High effect: {len(high_effect)}', file=f_stats)
+        print(f'Recombo Low effect: {len(low_effect)}', file=f_stats)
 
     f_stats.close()
 
@@ -351,32 +355,42 @@ def get_tables(df, out_dir):
         for name in list(df[df.perc_B == 1].index):
             print(name, file=b6_file)
 
+
 def get_cluster_type(df, out_dir):
-    # 1. Determine High/Low effect status first
-    df['is_high'] = df.apply(check_high_effect, axis=1)
-
-    # 2. Initialize the type column
+    # 1. Initialize with a default
     df['seq_type'] = 'Unknown'
-
-    # 3. Apply logic using .loc for vectorized assignment
-    # Low Confidence
-    df.loc[df.Err > 0.05, 'seq_type'] = 'Low_Confidence'
     
-    # Pure Strains
-    df.loc[(df.Err <= 0.05) & (df.perc_B == 1), 'seq_type'] = 'Complete_B6'
-    df.loc[(df.Err <= 0.05) & (df.perc_B == 0), 'seq_type'] = 'Complete_PWD'
-
-    # Recombinants (Filtering for those between 0 and 1)
-    recombo_mask = (df.Err <= 0.05) & (df.perc_B.between(0, 1, inclusive='neither'))
+    # 2. Define clear, mutually exclusive masks
+    # High confidence is the baseline for all specific classifications
+    is_high_conf = df['Err'] <= 0.05
+    is_low_conf = ~is_high_conf
     
-    df.loc[recombo_mask & (df.is_high), 'seq_type'] = 'Recombo_HighEff'
-    df.loc[recombo_mask & (~df.is_high), 'seq_type'] = 'Recombo_LowEff'
+    # Specific strain masks
+    is_pure_b = is_high_conf & (df['perc_B'] == 1)
+    is_pure_pwd = is_high_conf & (df['perc_B'] == 0)
+    # between(inclusive='neither') is (0 < x < 1)
+    is_recombo = is_high_conf & df['perc_B'].between(0, 1, inclusive='neither')
 
-    # 4. Clean up the index
-    # Note: Ensure the split logic matches your index format (e.g., "ID=123_abc")
+    # 3. Vectorized Assignments
+    df.loc[is_low_conf, 'seq_type'] = 'Low_Confidence'
+    df.loc[is_pure_b, 'seq_type'] = 'Complete_B6'
+    df.loc[is_pure_pwd, 'seq_type'] = 'Complete_PWD'
+
+    # 4. Handle Recombinants
+    if is_recombo.any():
+        # If check_high_effect can be rewritten to take a Series, do it here.
+        # Otherwise, only apply it to the subset that needs it to save time:
+        recombo_df = df.loc[is_recombo].copy()
+        recombo_df['is_high'] = recombo_df.apply(check_high_effect, axis=1)
+        
+        df.loc[is_recombo & (recombo_df['is_high']), 'seq_type'] = 'Recombo_HighEff'
+        df.loc[is_recombo & (~recombo_df['is_high']), 'seq_type'] = 'Recombo_LowEff'
+
+    # 5. Clean up the index
+    # Added a check to ensure split works as expected
     df.index = df.index.map(lambda x: str(x).split('=')[1].split('_')[0])
 
-    # 5. Export results
+    # 6. Export results
     df['seq_type'].to_csv(out_dir + '_cluster_types.tsv', sep='\t', index=True)
 
 
